@@ -1,0 +1,8 @@
+## Interface: 11302
+## Title: Five Second Rule (WoW Classic)
+## Notes: Create stuff.
+## Version: 1.0
+## DefaultState: enabled
+## Author: Stefan Michael Pedersen (Cassini, EU)
+
+FiveSecondRule.lua
