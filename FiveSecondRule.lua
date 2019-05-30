@@ -1,62 +1,130 @@
+-- NAMESPACE: FiveSecondRule
+FiveSecondRule = {} 
 
-
--- SetScript("PLAYER_ENTERING_WORLD", FiveSecondRule:GetFrame())
--- RegisterEvent("PLAYER_ENTERING_WORLD")
-
-FiveSecondRule = {} -- Global Functions
-
-local FiveSecondRuleFrame = CreateFrame("Frame")
+-- STATE VARIABLES
+local unlocked = false
 local mp5delay = 5
 local castCounter = 0
 local mp5StartTime = 0
 local updateTimerEverySeconds = 0.05
-local statusbar = CreateFrame("StatusBar", nil, UIParent)
 
-FiveSecondRuleFrame:SetScript("OnUpdate", function(self, sinceLastUpdate) FiveSecondRuleFrame:onUpdate(sinceLastUpdate); end);
+-- INTERFACE
+local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
+local statusbar = CreateFrame("StatusBar", "Five Second Rule Statusbar", UIParent) -- The actualy visible StatusBar
 
+-- REGISTER EVENTS
+FiveSecondRuleFrame:RegisterEvent("ADDON_LOADED")
 FiveSecondRuleFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 FiveSecondRuleFrame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED")
 FiveSecondRuleFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
-FiveSecondRuleFrame:SetScript("OnEvent",
-    function(self, event, ...)
-        if event == "PLAYER_ENTERING_WORLD" then
-            CreateStatusBar()
-        end
+-- REGISTER EVENT LISTENERS
+FiveSecondRuleFrame:SetScript("OnUpdate", function(self, sinceLastUpdate) FiveSecondRuleFrame:onUpdate(sinceLastUpdate); end);
+FiveSecondRuleFrame:SetScript("OnEvent", function(self, event, arg1, ...) FiveSecondRule:onEvent(self, event, arg1, ...) end);
 
-        if event == "CURRENT_SPELL_CAST_CHANGED"  then
-            castCounter = castCounter + 1
+-- UI INFLATION
+function CreateStatusBar()
+    -- VALUE
+    statusbar:SetMinMaxValues(0, mp5delay)
 
-            if (castCounter == 1) then
-                 --print("Starting Cast")
-                 updatePlayerMana()
-            elseif (castCounter == 2) then 
-                --print("Casting...")
-                updatePlayerMana()
-            else
-                --print("Stopped Cast")
-                castCounter = 0
-            end
-        end   
+    -- POSITION, SIZE
+    statusbar:SetWidth(200)
+    statusbar:SetHeight(20)
+    statusbar:SetMinResize(20, 4)
 
-        if event == "UNIT_SPELLCAST_SUCCEEDED" then
-            if getPlayerMana() < currentMana then
-                updatePlayerMana()
-                mp5StartTime = GetTime() + 5
-
-                --print("SUCCESS - spent mana, start 5s rule")
-                statusbar:Show()
-            end
-        end
+    if not statusbar:IsUserPlaced() then
+        statusbar:SetPoint("CENTER", UIParent, "CENTER", 0, 100)
     end
-)
 
-function updatePlayerMana()
-    currentMana = getPlayerMana()
+    -- FOREGROUND
+    statusbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
+    statusbar:GetStatusBarTexture():SetHorizTile(false)
+    statusbar:GetStatusBarTexture():SetVertTile(false)
+    statusbar:SetStatusBarColor(0, 0, 0.95)
+
+    -- BACKGROUND
+    statusbar.bg = statusbar:CreateTexture(nil, "BACKGROUND")
+    statusbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
+    statusbar.bg:SetAllPoints(true)
+    statusbar.bg:SetVertexColor(0, 0, 0.55)
+    statusbar.bg:SetAlpha(0.5)
+
+    -- TEXT
+    statusbar.value = statusbar:CreateFontString(nil, "OVERLAY")
+    statusbar.value:SetPoint("LEFT", statusbar, "LEFT", 4, 0)
+    statusbar.value:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+    statusbar.value:SetJustifyH("LEFT")
+    statusbar.value:SetShadowOffset(1, -1)
+    statusbar.value:SetTextColor(1, 1, 1)
+
+    -- DRAGGING
+    -- statusbar:RegisterForDrag("LeftButton")
+    statusbar:SetScript("OnMouseDown", function(self, button) FiveSecondRule:onMouseDown(button); end)
+    statusbar:SetScript("OnMouseUp", function(self, button) FiveSecondRule:onMouseUp(button); end)
+    statusbar:SetMovable(true)
+    statusbar:SetResizable(true)
+    statusbar:EnableMouse(false)
+    statusbar:SetClampedToScreen(false)
+
+    statusbar:Hide()
 end
 
-function getPlayerMana() 
-    return UnitPower("player" , 0); -- 0 is mana
+-- EVENT HANDLERS
+function FiveSecondRule:onMouseDown(button)
+    local shiftKey = IsShiftKeyDown()
+
+    if button == "LeftButton" then
+        statusbar:StartMoving();
+      elseif button == "RightButton" then
+        statusbar:StartSizing("BOTTOMRIGHT");
+        statusbar.resizing = 1
+      end
+end
+
+function FiveSecondRule:onMouseUp()
+    local height = statusbar:GetHeight()
+    local remainder = modulus(height, 2)
+    local px = height - remainder
+    
+    statusbar:StopMovingOrSizing();
+    statusbar.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
+end
+
+function FiveSecondRule:onEvent(self, event, arg1, ...)
+    if event == "ADDON_LOADED" then
+        if arg1 == "FiveSecondRule" then 
+            CreateStatusBar()
+        end
+    end
+
+    if event == "PLAYER_ENTERING_WORLD" then
+        PrintHelp()
+    end
+
+    if event == "CURRENT_SPELL_CAST_CHANGED"  then
+        castCounter = castCounter + 1
+
+        if (castCounter == 1) then
+             --print("Starting Cast")
+             updatePlayerMana()
+        elseif (castCounter == 2) then 
+            --print("Casting...")
+            updatePlayerMana()
+        else
+            --print("Stopped Cast")
+            castCounter = 0
+        end
+    end   
+
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        if getPlayerMana() < currentMana then
+            updatePlayerMana()
+            mp5StartTime = GetTime() + 5
+
+            --print("SUCCESS - spent mana, start 5s rule")
+            statusbar:Show()
+        end
+    end
 end
 
 function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
@@ -78,42 +146,79 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     statusbar.value:SetText(string.format("%.1f", remaining).."s")
                 else
                     print("MP5 ACTIVE")
-                    message("MP5 Active!")
                     mp5StartTime = 0
-                    statusbar:Hide()
+
+                    if not unlocked then 
+                        statusbar:Hide()
+                    end
                 end
-
-
             end
         end
-
-
 end
 
+-- HELPER FUNCTIONS
+function updatePlayerMana()
+    currentMana = getPlayerMana()
+end
 
-function CreateStatusBar()
+function getPlayerMana() 
+    return UnitPower("player" , 0); -- 0 is mana
+end
+
+function modulus(a,b)
+    return a - math.floor(a/b)*b
+end
+
+function unlock()
+    unlocked = true
+    statusbar:Show()
+    statusbar:EnableMouse(true)
+end
+
+function lock() 
+    unlocked = false
+    statusbar:Hide()
+    statusbar:EnableMouse(false)
+    statusbar:StopMovingOrSizing();
+	statusbar.resizing = nil
+end
+
+function reset()
     statusbar:SetWidth(200)
     statusbar:SetHeight(20)
     statusbar:SetPoint("CENTER", UIParent, "CENTER", 0, 100)
-    statusbar:SetMinMaxValues(0, mp5delay)
 
-    statusbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
-    statusbar:GetStatusBarTexture():SetHorizTile(false)
-    statusbar:GetStatusBarTexture():SetVertTile(false)
-    statusbar:SetStatusBarColor(0, 0, 0.95)
+    unlock()
+end
 
-    statusbar.bg = statusbar:CreateTexture(nil, "BACKGROUND")
-    statusbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
-    statusbar.bg:SetAllPoints(true)
-    statusbar.bg:SetVertexColor(0, 0, 0.55)
-    statusbar.bg:SetAlpha(0.5)
+-- COMMANDS
+SLASH_FSR1 = '/fsr'; 
+function SlashCmdList.FSR(msg, editbox)
+     if msg == "unlock" or msg == "Unlock" or msg == "UNLOCK" or msg == "u" or msg == "U" then
+         print("Five Second Rule - UNLOCKED.");
+         unlock()
+      end
+     if msg == "lock" or msg == "Lock" or msg == "LOCK" or msg == "l" or msg == "L"  then
+        print("Five Second Rule - LOCKED.");
+        lock()
+     end
+     if msg == "reset" then
+        print("Five Second Rule - RESET SIZE AND POSITION.");
+        lock()     
+     end
+     if msg == "" or msg == "help" then
+        PrintHelp()  
+     end
+end
 
-    statusbar.value = statusbar:CreateFontString(nil, "OVERLAY")
-    statusbar.value:SetPoint("LEFT", statusbar, "LEFT", 4, 0)
-    statusbar.value:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
-    statusbar.value:SetJustifyH("LEFT")
-    statusbar.value:SetShadowOffset(1, -1)
-    statusbar.value:SetTextColor(1, 1, 1)
-
-    statusbar:Hide()
+-- HELP
+function PrintHelp() 
+    print("# Five Second Rule")
+    print("#    - /fsr unlock (U)   Unlock the frame and enable drag.")
+    print("#                                    - Hold LEFT mouse button (on the frame) to move.")
+    print("#                                    - Hold RIGHT mouse button (on the frame) to resize.")
+    print("#    - /fsr lock (L)     Lock the frame and disable drag.")
+    print("#    - /fsr reset        Resets the position and size of the frame.")
+    print("#    - /fsr help         Print this help message.")
+    print("# Source: https://github.com/smp4903/wow-classic-five-second-rule")
 end
