@@ -6,14 +6,19 @@ The purpose of this addon is to track the so-called "5-second-rule" (5SR), which
 
 ### Commands
 
-**/fsr unlock**   Unlock the frame and enable drag.
+  **/fsr unlock**   Unlock the frame and enable drag.
 
-**/fsr lock**     Lock the frame and disable drag.
+    - Hold LEFT mouse button (on the frame) to move.
 
-**/fsr reset**    Resets the position and size of the frame.
+    - Hold RIGHT mouse button (on the frame) to resize.
+                         
+  **/fsr lock**     Lock the frame and disable drag.
+
+  **/fsr reset**    Resets the position and size of the frame.
+
+  **/fsr help**     Print help message.
 
 ### Planned Work
 
 - Add options frame.
-- Add sizing configuration.
 - Add optional warnings when on low mana (motivate usage of 5SR).
