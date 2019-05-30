@@ -17,6 +17,7 @@ FiveSecondRuleFrame:RegisterEvent("ADDON_LOADED")
 FiveSecondRuleFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 FiveSecondRuleFrame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED")
 FiveSecondRuleFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+FiveSecondRuleFrame:RegisterEvent("UNIT_MAXPOWER")
 
 -- REGISTER EVENT LISTENERS
 FiveSecondRuleFrame:SetScript("OnUpdate", function(self, sinceLastUpdate) FiveSecondRuleFrame:onUpdate(sinceLastUpdate); end);
@@ -99,6 +100,11 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_ENTERING_WORLD" then
         PrintHelp()
+        updatePlayerMana()
+    end
+
+    if event == "UNIT_MAXPOWER" then
+        updatePlayerMana()
     end
 
     if event == "CURRENT_SPELL_CAST_CHANGED"  then
