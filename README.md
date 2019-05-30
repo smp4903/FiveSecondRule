@@ -4,6 +4,13 @@ This is an addon for **World of Warcraft Classic** (set to release on August 27.
 
 The purpose of this addon is to track the so-called "5-second-rule" (5SR), which refers to the time needed to elapse after spending mana, for mana regen to resume. Notable, this rule excludes "mp5"-gear. 
 
+So far you can only configure the frame slightly:
+
+* Move the frame around.
+* Resize the frame by hand/dragging (no number inputs).
+
+See the example screenshots below.
+
 ### Commands
 
   **/fsr unlock**   Unlock the frame and enable drag.
@@ -22,3 +29,13 @@ The purpose of this addon is to track the so-called "5-second-rule" (5SR), which
 
 - Add options frame.
 - Add optional warnings when on low mana (motivate usage of 5SR).
+
+### Screenshots
+
+![Chat](https://imgur.com/1Rg8Hcm)
+
+![Example 1](https://imgur.com/8gIcIBz)
+
+![Example 2](https://imgur.com/it2kyVv)
+
+![Example 3](https://imgur.com/jm0ULKH)
