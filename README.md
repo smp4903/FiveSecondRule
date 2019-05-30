@@ -32,10 +32,10 @@ See the example screenshots below.
 
 ### Screenshots
 
-![Chat](https://imgur.com/1Rg8Hcm)
+![Chat](https://i.imgur.com/1Rg8Hcm.jpg)
 
-![Example 1](https://imgur.com/8gIcIBz)
+![Example 1](https://i.imgur.com/8gIcIBz.jpg)
 
-![Example 2](https://imgur.com/it2kyVv)
+![Example 2](https://i.imgur.com/it2kyVv.jpg)
 
-![Example 3](https://imgur.com/jm0ULKH)
+![Example 3](https://i.imgur.com/jm0ULKH.jpg)
