@@ -10,6 +10,8 @@ The purpose of this addon is to track the so-called "5-second-rule" (5SR), which
 
 **/fsr lock**     Lock the frame and disable drag.
 
+**/fsr reset**    Resets the position and size of the frame.
+
 ### Planned Work
 
 - Add options frame.
