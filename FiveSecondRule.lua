@@ -151,7 +151,7 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     statusbar:SetValue(remaining)
                     statusbar.value:SetText(string.format("%.1f", remaining).."s")
                 else
-                    print("MP5 ACTIVE")
+                    --print("MP5 ACTIVE")
                     mp5StartTime = 0
 
                     if not unlocked then 
