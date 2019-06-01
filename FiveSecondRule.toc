@@ -3,6 +3,6 @@
 ## Notes: The purpose of this addon is to track the so-called "5-second-rule" (5SR), which refers to the time needed to elapse after spending mana, for mana regen to resume. Notable, this rule excludes "mp5"-gear.
 ## Version: 1.0
 ## DefaultState: enabled
-## Author: Stefan Michael Pedersen (Cassini, EU)
+## Author: Stefan Michael Pedersen (stefanmp91@gmail.com)
 
 FiveSecondRule.lua
