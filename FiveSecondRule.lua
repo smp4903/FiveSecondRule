@@ -210,7 +210,7 @@ function SlashCmdList.FSR(msg, editbox)
      end
      if msg == "reset" then
         print("Five Second Rule - RESET SIZE AND POSITION.");
-        lock()     
+        reset()   
      end
      if msg == "" or msg == "help" then
         PrintHelp()  
