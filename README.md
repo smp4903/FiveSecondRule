@@ -2,6 +2,8 @@
 
 This is an addon for **World of Warcraft Classic** (set to release on August 27. 2019).
 
+### NOTICE: Make sure the folder is named "FiveSecondRule" when installing the addon.
+
 The purpose of this addon is to track the so-called "5-second-rule" (5SR), which refers to the time needed to elapse after spending mana, for mana regen to resume. Notable, this rule excludes "mp5"-gear. 
 
 So far you can only configure the frame slightly:
