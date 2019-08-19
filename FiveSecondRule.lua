@@ -1,32 +1,30 @@
 -- NAMESPACE: FiveSecondRule
+local ADDON_NAME = "FiveSecondRule"
 FiveSecondRule = {} 
 FiveSecondRuleTick = {}
 
 local defaults = {
     ["showTicks"] = true,
 
-    ["statusBarWidth"] = 117,
-    ["statusBarHeight"] = 11,
-    ["statusBarTop"] = -68,
-    ["statusBarLeft"] = 90,
+    ["barWidth"] = 117,
+    ["barHeight"] = 11,
 
-    ["manaTickWidth"] = 117,
-    ["manaTickHeight"] = 11,
-    ["manaTickTop"] = -68,
-    ["manaTickLeft"] = 90,
+    ["barTop"] = -68,
+    ["barLeft"] = 90
 }
+
+-- CONSTANTS
+local manaRegenTime = 2
+local updateTimerEverySeconds = 0.05
+local mp5delay = 5
 
 -- STATE VARIABLES
 local gainingMana = false
 local unlocked = false
 local fullmana = false
-local mp5delay = 5
 local castCounter = 0
 local mp5StartTime = 0
-local updateTimerEverySeconds = 0.05
-
 local manaTickTime = 0
-local manaRegenTime = 2
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -44,12 +42,33 @@ FiveSecondRuleFrame:RegisterEvent("PLAYER_LOGIN")
 FiveSecondRuleFrame:SetScript("OnUpdate", function(self, sinceLastUpdate) FiveSecondRuleFrame:onUpdate(sinceLastUpdate); end);
 FiveSecondRuleFrame:SetScript("OnEvent", function(self, event, arg1, ...) FiveSecondRule:onEvent(self, event, arg1, ...) end);
 
+-- INITIALIZATION
+function FiveSecondRule:Init()
+    -- Initialize FiveSecondRule_Options
+    FiveSecondRule:LoadOptions()
+
+    -- Create UI
+    FiveSecondRule:CreateStatusBar()
+    FiveSecondRule:CreateTickBar()
+end
+
+function FiveSecondRule:LoadOptions()
+    FiveSecondRule_Options = FiveSecondRule_Options or FiveSecondRule:deepcopy(defaults)
+
+    for key,value in pairs(defaults) do
+        if (FiveSecondRule_Options[key] == nil) then
+            FiveSecondRule_Options[key] = value
+        end
+    end
+end
+
 -- UI INFLATION
-function CreateStatusBar()
+function FiveSecondRule:CreateStatusBar()
     -- POSITION, SIZE
-    statusbar:SetWidth(FiveSecondRule_Options.statusBarWidth)
-    statusbar:SetHeight(FiveSecondRule_Options.statusBarHeight)
-    statusbar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", FiveSecondRule_Options.statusBarLeft, FiveSecondRule_Options.statusBarTop)
+    statusbar:ClearAllPoints()
+    statusbar:SetWidth(FiveSecondRule_Options.barWidth)
+    statusbar:SetHeight(FiveSecondRule_Options.barHeight)
+    statusbar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", FiveSecondRule_Options.barLeft, FiveSecondRule_Options.barTop)
 
     -- DRAGGING
     statusbar:SetScript("OnMouseDown", function(self, button) FiveSecondRule:onMouseDown(button); end)
@@ -83,20 +102,18 @@ function CreateStatusBar()
     statusbar.value:SetShadowOffset(1, -1)
     statusbar.value:SetTextColor(1, 1, 1)
 
-    updateStatusBarFont()
+    FiveSecondRule:updateStatusBarFont()
 
     statusbar:Hide()
 end
 
-function CreateTickBar() 
+function FiveSecondRule:CreateTickBar() 
     -- POSITION, SIZE
-    tickbar:SetWidth(FiveSecondRule_Options.manaTickWidth)
-    tickbar:SetHeight(FiveSecondRule_Options.manaTickHeight)
-    tickbar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", FiveSecondRule_Options.manaTickLeft, FiveSecondRule_Options.manaTickTop)
+    tickbar:SetWidth(FiveSecondRule_Options.barWidth)
+    tickbar:SetHeight(FiveSecondRule_Options.barHeight)
+    tickbar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", FiveSecondRule_Options.barLeft, FiveSecondRule_Options.barTop)
 
     -- DRAGGING
-    tickbar:SetScript("OnMouseDown", function(self, button) FiveSecondRuleTick:onMouseDown(button); end)
-    tickbar:SetScript("OnMouseUp", function(self, button) FiveSecondRuleTick:onMouseUp(button); end)
     tickbar:SetMovable(true)
     tickbar:SetResizable(true)
     tickbar:EnableMouse(false)
@@ -126,27 +143,12 @@ function CreateTickBar()
     tickbar.value:SetShadowOffset(1, -1)
     tickbar.value:SetTextColor(1, 1, 1, 1)
 
-    updateTickBarFont()
+    FiveSecondRule:updateTickBarFont()
 
     tickbar:Hide()
 end
 
 -- EVENT HANDLERS
-function FiveSecondRuleTick:onMouseDown(button)
-    local shiftKey = IsShiftKeyDown()
-
-    if button == "LeftButton" then
-        tickbar:StartMoving();
-      elseif button == "RightButton" then
-        tickbar:StartSizing("BOTTOMRIGHT");
-        tickbar.resizing = 1
-      end
-end
-
-function FiveSecondRuleTick:onMouseUp()    
-    tickbar:StopMovingOrSizing();
-end
-
 function FiveSecondRule:onMouseDown(button)
     local shiftKey = IsShiftKeyDown()
 
@@ -159,19 +161,21 @@ function FiveSecondRule:onMouseDown(button)
 end
 
 function FiveSecondRule:onMouseUp()
-    updateStatusBarFont()
+    FiveSecondRule:updateStatusBarFont()
     statusbar:StopMovingOrSizing();
+
+    tickbar:StopMovingOrSizing()
+    tickbar:SetUserPlaced(false)
+    tickbar:ClearAllPoints()
+    tickbar:SetPoint("TOPLEFT", statusbar, "TOPLEFT", 0, 0)
+    tickbar:SetUserPlaced(true)
+    tickbar:Hide()
 end
 
 function FiveSecondRule:onEvent(self, event, arg1, ...)
     if event == "ADDON_LOADED" then
         if arg1 == "FiveSecondRule" then 
-            -- Initialize FiveSecondRule_Options
-            FiveSecondRule_Options = FiveSecondRule_Options or defaults
-            FiveSecondRule_Options.manaTickHeight = 11
-
-            CreateStatusBar()
-            CreateTickBar()
+            FiveSecondRule:Init()
         end
     end
 
@@ -189,7 +193,7 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_ENTERING_WORLD" then
         PrintHelp()
-        updatePlayerMana()
+        FiveSecondRule:updatePlayerMana()
     end
 
     if event == "CURRENT_SPELL_CAST_CHANGED"  then
@@ -197,10 +201,10 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
         if (castCounter == 1) then
              --print("Starting Cast")
-             updatePlayerMana()
+             FiveSecondRule:updatePlayerMana()
         elseif (castCounter == 2) then 
             --print("Casting...")
-            updatePlayerMana()
+            FiveSecondRule:updatePlayerMana()
         else
             --print("Stopped Cast")
             castCounter = 0
@@ -208,10 +212,10 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
     end   
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        if getPlayerMana() < currentMana then
+        if FiveSecondRule:getPlayerMana() < currentMana then
             gainingMana = false
             
-            updatePlayerMana()
+            FiveSecondRule:updatePlayerMana()
             mp5StartTime = GetTime() + 5
 
             --print("SUCCESS - spent mana, start 5s rule")
@@ -224,11 +228,11 @@ end
 
 function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
     local now = GetTime()
-    local newMana = getPlayerMana()
+    local newMana = FiveSecondRule:getPlayerMana()
 
-    fullmana = newMana >= getPlayerManaMax()
+    fullmana = newMana >= FiveSecondRule:getPlayerManaMax()
 
-    if not (now == nil) then 
+    if not (now == nil) then -- time needs to be defined for this to work
         self.sinceLastUpdate = (self.sinceLastUpdate or 0) + sinceLastUpdate;
         
         if ( self.sinceLastUpdate >= updateTimerEverySeconds ) then -- in seconds
@@ -263,7 +267,7 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
         
                         manaTickTime = now + manaRegenTime
         
-                        updatePlayerMana()
+                        FiveSecondRule:updatePlayerMana()
                     end
         
                     local val = manaTickTime - now
@@ -277,135 +281,122 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 end
 
 -- HELPER FUNCTIONS
-function updatePlayerMana()
-    currentMana = getPlayerMana()
+
+function FiveSecondRule:updateStatusBarFont()
+    local height = statusbar:GetHeight()
+    local remainder = FiveSecondRule:modulus(height, 2)
+    local px = height - remainder
+    statusbar.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
 end
 
-function getPlayerMana() 
+function FiveSecondRule:updateTickBarFont()
+    local height = tickbar:GetHeight()
+    local remainder = FiveSecondRule:modulus(height, 2)
+    local px = height - remainder
+    tickbar.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
+end
+
+function FiveSecondRule:updatePlayerMana()
+    currentMana = FiveSecondRule:getPlayerMana()
+end
+
+function FiveSecondRule:getPlayerMana() 
     return UnitPower("player" , 0); -- 0 is mana
 end
 
-function getPlayerManaMax()
+function FiveSecondRule:getPlayerManaMax()
     return UnitPowerMax("player", 0) -- 0 is mana
 end
 
-function modulus(a,b)
+function FiveSecondRule:modulus(a,b)
     return a - math.floor(a/b)*b
 end
 
-function unlock()
+function FiveSecondRule:deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+function FiveSecondRule:unlock()
     unlocked = true
 
     statusbar:Show()
     statusbar:EnableMouse(true)
     statusbar:SetValue(2)
 
-    tickbar:Show()
-    tickbar:EnableMouse(true)
-    tickbar:SetValue(1)
+    tickbar:Hide()
 end
 
-function lock() 
+function FiveSecondRule:lock() 
     unlocked = false
 
     statusbar:Hide()
     statusbar:EnableMouse(false)
     statusbar:StopMovingOrSizing();
     statusbar.resizing = nil
-    
-    tickbar:Hide()
-    tickbar:EnableMouse(false)
-    tickbar:StopMovingOrSizing();
-    tickbar.resizing = nil
 end
 
-function reset()
-    FiveSecondRule_Options = defaults
-
-    resetStatusBar()
-    resetTickBar()
-end
-
-function resetStatusBar()
-    local playerFrame = getglobal("PlayerFrame")
-
-    statusbar:SetUserPlaced(false)
-    statusbar:SetWidth(FiveSecondRule_Options.statusBarWidth)
-    statusbar:SetHeight(FiveSecondRule_Options.statusBarHeight)
-    statusbar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", FiveSecondRule_Options.statusBarLeft, FiveSecondRule_Options.statusBarTop)
-
-    updateStatusBarFont()
-
-end
-
-function resetTickBar()
-    local playerFrame = getglobal("PlayerFrame")
-
+function FiveSecondRule:reset()
     tickbar:SetUserPlaced(false)
-    tickbar:SetWidth(FiveSecondRule_Options.manaTickWidth)
-    tickbar:SetHeight(FiveSecondRule_Options.manaTickHeight)
-    tickbar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", FiveSecondRule_Options.manaTickLeft, FiveSecondRule_Options.manaTickTop)
+    statusbar:SetUserPlaced(false)
 
-    updateTickBarFont()
-end
+    FiveSecondRule_Options = FiveSecondRule:deepcopy(defaults)
 
-function updateStatusBarFont()
-    local height = statusbar:GetHeight()
-    local remainder = modulus(height, 2)
-    local px = height - remainder
-    statusbar.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
-end
-
-
-function updateTickBarFont()
-    local height = tickbar:GetHeight()
-    local remainder = modulus(height, 2)
-    local px = height - remainder
-    tickbar.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
+    FiveSecondRule:Init()
 end
 
 -- COMMANDS
 SLASH_FSR1 = '/fsr'; 
 function SlashCmdList.FSR(msg, editbox)
-     if msg == "unlock" or msg == "Unlock" or msg == "UNLOCK" or msg == "u" or msg == "U" then
+     if msg:lower() == "unlock" or msg:lower() == "u" then
          print("Five Second Rule - UNLOCKED.")
-         unlock()
+         FiveSecondRule:unlock()
       end
-     if msg == "lock" or msg == "Lock" or msg == "LOCK" or msg == "l" or msg == "L"  then
+     if msg:lower() == "lock" or msg:lower() == "l" then
         print("Five Second Rule - LOCKED.")
-        lock()
+        FiveSecondRule:lock()
      end
-     if msg == "reset" then
+     if msg:lower() == "reset" then
         print("Five Second Rule - RESET ALL SETTINGS")
-        reset()
+        FiveSecondRule:reset()
      end
-     if msg == "" or msg == "help" then
-        PrintHelp()  
+     if msg:lower() == "" or msg == "help" then
+        FiveSecondRule:PrintHelp()  
      end
 end
 
 -- HELP
-function PrintHelp() 
+function FiveSecondRule:PrintHelp() 
     print("# Five Second Rule")
-    print("#    - /fsr unlock (U)   Unlock the frame and enable drag.")
+    print("#    - /fsr FiveSecondRule:unlock (U)   FiveSecondRule:unlock the frame and enable drag.")
     print("#                         - Hold LEFT mouse button (on the frame) to move.")
     print("#                         - Hold RIGHT mouse button (on the frame) to resize.")
     print("#    - /fsr lock (L)     Lock the frame and disable drag.")
     print("#    - /fsr reset        Resets all settings.")
     print("#    - /fsr help         Print this help message.")
-    print("# Source: https://github.com/smp4903/wow-classic-five-second-rule")
+    print("# Source: https://github.com/smp4903/five-second-rule")
 end
 
 -- OPTIONS
 
-function UpdateOptionValues(content)
+function FiveSecondRule:UpdateOptionValues(content)
     content.ticks:SetChecked(FiveSecondRule_Options.showTicks)
     
-    content.statusBarWidth:SetText(tostring(FiveSecondRule_Options.statusBarWidth))
-    content.statusBarHeight:SetText(tostring(FiveSecondRule_Options.statusBarHeight))
+    content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
+    content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
     
-    content.manaTickWidth:SetText(tostring(FiveSecondRule_Options.manaTickWidth))
-    content.manaTickHeight:SetText(tostring(FiveSecondRule_Options.manaTickHeight))
+    content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
+    content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
 end
 
 function FiveSecondRuleFrame:CreateGUI(name, parent)
@@ -431,61 +422,67 @@ function FiveSecondRuleFrame:CreateGUI(name, parent)
     frame.content = content
 
     -- WHETHER OR NOT TO SHOW THE MANA TICKS BAR
-    local ticks = MakeCheckbox(nil, content, "Check to show when the next mana regen tick will fulfil.")
+    local ticks = FiveSecondRule:MakeCheckbox(nil, content, "Check to show when the next mana regen tick will fulfil.")
     ticks.label:SetText("Show Mana Ticks")
     ticks:SetPoint("TOPLEFT", 10, -30)
     content.ticks = ticks
     ticks:SetScript("OnClick",function(self,button)
-        FiveSecondRule_Options.showTicks = not FiveSecondRule_Options.showTicks
+        FiveSecondRule_Options.showTicks = self:GetChecked()
     end)
 
-    -- STATUS BAR
-    local statusBarWidth = MakeEditBox(nil, content, "Countdown Width", 75, 25, StatusBarWidthOnEnter)
-    statusBarWidth:SetPoint("TOPLEFT", 250, -30)
-    statusBarWidth:SetCursorPosition(0)
-    content.statusBarWidth = statusBarWidth
+    -- BAR
+    local barWidth = FiveSecondRule:MakeEditBox(nil, content, "Countdown Width", 75, 25, function(self)
+        FiveSecondRule_Options.barWidth = tonumber(self:GetText())
+    end)
+    barWidth:SetPoint("TOPLEFT", 250, -30)
+    barWidth:SetCursorPosition(0)
+    content.barWidth = barWidth
 
-    local statusBarHeight = MakeEditBox(nil, content, "Countdown Height", 75, 25, StatusBarHeightOnEnter)
-    statusBarHeight:SetPoint("TOPLEFT", 400, -30)
-    statusBarHeight:SetCursorPosition(0)
-    content.statusBarHeight = statusBarHeight
+    local barHeight = FiveSecondRule:MakeEditBox(nil, content, "Countdown Height", 75, 25, function(self)
+        FiveSecondRule_Options.barHeight = tonumber(self:GetText())
+    end)
+    barHeight:SetPoint("TOPLEFT", 400, -30)
+    barHeight:SetCursorPosition(0)
+    content.barHeight = barHeight
 
-    -- MANA TICK BAR
-    local manaTickWidth = MakeEditBox(nil, content, "Mana Ticks Width", 75, 25, ManaTickBarWidthOnEnter)
-    manaTickWidth:SetPoint("TOPLEFT", 250, -90)
-    manaTickWidth:SetCursorPosition(0)
-    content.manaTickWidth = manaTickWidth
+    -- LOCK / UNLOCK BUTTON
+    local function lockToggled(self)
+        if (unlocked) then 
+            FiveSecondRule:lock() 
+            self:SetText("Unlock")
+        else 
+            FiveSecondRule:unlock() 
+            self:SetText("Lock")
+        end 
+    end
 
-    local manaTickHeight = MakeEditBox(nil, content, "Mana Ticks Height", 75, 25, ManaTickBarHeightOnEnter)
-    manaTickHeight:SetPoint("TOPLEFT", 400, -90)
-    manaTickHeight:SetCursorPosition(0)
-    content.manaTickHeight = manaTickHeight
+    local toggleLockText = (unlocked and "Lock" or "Unlock")
+    local toggleLock = FiveSecondRule:MakeButton("LockButton", content, 60, 20, toggleLockText, 14, FiveSecondRule:MakeColor(1,1,1,1), function(self)
+        lockToggled(self)
+    end)
+    toggleLock:SetPoint("TOPLEFT", 10, -120)
+    content.toggleLock = toggleLock
+
+    -- RESET BUTTON
+    local resetButton = FiveSecondRule:MakeButton("ResetButton", content, 60, 20, "Reset", 14, FiveSecondRule:MakeColor(1,1,1,1), function(self) 
+        FiveSecondRule:reset()
+         
+        if (unlocked) then
+            lockToggled(toggleLock)
+        end
+    end)
+    resetButton:SetPoint("TOPRIGHT", -30, -120)
+    content.resetButton = resetButton
 
     -- UPDATE VALUES ON SHOW
-    frame:SetScript("OnShow", function(self) UpdateOptionValues(content) end)
+    frame:SetScript("OnShow", function(self) FiveSecondRule:UpdateOptionValues(content) end)
 
     return frame
 end
 
-function StatusBarWidthOnEnter(self)
-    FiveSecondRule_Options.statusBarWidth = tonumber(self:GetText())
-end
+-- UI CREATORS
 
-function StatusBarHeightOnEnter(self)
-    FiveSecondRule_Options.statusBarHeight = tonumber(self:GetText())
-end
-
-function ManaTickBarWidthOnEnter(self)
-    FiveSecondRule_Options.manaTickWidth = tonumber(self:GetText())
-end
-
-function ManaTickBarHeightOnEnter(self)
-    FiveSecondRule_Options.manaTickHeight = tonumber(self:GetText())
-end
-
--- UTILITIES
-
-function MakeCheckbox(name, parent, tooltip_text)
+function FiveSecondRule:MakeCheckbox(name, parent, tooltip_text)
     local cb = CreateFrame("CheckButton", name, parent, "UICheckButtonTemplate")
     cb:SetWidth(25)
     cb:SetHeight(25)
@@ -501,7 +498,7 @@ function MakeCheckbox(name, parent, tooltip_text)
     return cb
 end
 
-function MakeText(parent, text, size)
+function FiveSecondRule:MakeText(parent, text, size)
     local text_obj = parent:CreateFontString(nil, "ARTWORK")
     text_obj:SetFont("Fonts/FRIZQT__.ttf", size)
     text_obj:SetJustifyV("CENTER")
@@ -510,9 +507,9 @@ function MakeText(parent, text, size)
     return text_obj
 end
 
-function MakeEditBox(name, parent, title, w, h, enter_func)
+function FiveSecondRule:MakeEditBox(name, parent, title, w, h, enter_func)
     local edit_box_obj = CreateFrame("EditBox", name, parent)
-    edit_box_obj.title_text = MakeText(edit_box_obj, title, 12)
+    edit_box_obj.title_text = FiveSecondRule:MakeText(edit_box_obj, title, 12)
     edit_box_obj.title_text:SetPoint("TOP", 0, 12)
     edit_box_obj:SetBackdrop({
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -540,19 +537,14 @@ function MakeEditBox(name, parent, title, w, h, enter_func)
     return edit_box_obj
 end
 
-function MakeColorPicker(g_name, parent, r, g, b, a, text, on_click_func)
-    local color_picker = CreateFrame('Button', addon_name .. g_name, parent)
-    color_picker:SetSize(15, 15)
-    color_picker.normal = color_picker:CreateTexture(nil, 'BACKGROUND')
-    color_picker.normal:SetColorTexture(1, 1, 1, 1)
-    color_picker.normal:SetPoint('TOPLEFT', -1, 1)
-    color_picker.normal:SetPoint('BOTTOMRIGHT', 1, -1)
-    color_picker.foreground = color_picker:CreateTexture(nil, 'ARTWORK')
-    color_picker.foreground:SetColorTexture(r, g, b, a)
-    color_picker.foreground:SetAllPoints()
-    color_picker:SetNormalTexture(color_picker.normal)
-    color_picker:SetScript('OnClick', on_click_func)
-    color_picker.text = addon_data.config.TextFactory(color_picker, text, 12)
-    color_picker.text:SetPoint('LEFT', 25, 0)
-    return color_picker
+function FiveSecondRule:MakeButton(name, parent, width, height, text, textSize, color, on_click_func)
+    local button = CreateFrame('Button', ADDON_NAME .. name, parent, "UIPanelButtonTemplate")
+    button:SetSize(width, height)
+    button:SetText(text)
+    button:SetScript('OnClick', on_click_func)
+    return button
+end
+
+function FiveSecondRule:MakeColor(r,g,b,a) 
+    return {r = r, g = g, b = b, a = a}
 end
