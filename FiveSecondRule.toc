@@ -7,3 +7,9 @@
 ## SavedVariablesPerCharacter: FiveSecondRule_Options
 
 FiveSecondRule.lua
+
+Modules\SlashCommands.lua
+Modules\OptionsPanel.lua
+
+Dependencies\UIFactory.lua
+Dependencies\AddonUtils.lua
