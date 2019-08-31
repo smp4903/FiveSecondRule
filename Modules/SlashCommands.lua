@@ -21,5 +21,6 @@ function SlashCmdList.FSR(msg, editbox)
 
     if cmd == "" or cmd == "help" then
         FiveSecondRule:PrintHelp()  
+        InterfaceOptionsFrame_OpenToCategory(FiveSecondRule.OptionsPanelFrame)
     end
 end

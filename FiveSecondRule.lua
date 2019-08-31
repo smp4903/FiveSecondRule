@@ -191,11 +191,11 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
     if event == "ADDON_LOADED" then
         if arg1 == ADDON_NAME then 
             FiveSecondRule:Init()
+            FiveSecondRule:PrintHelp()
         end
     end
 
     if event == "PLAYER_ENTERING_WORLD" then
-        FiveSecondRule:PrintHelp()
         FiveSecondRule:updatePlayerMana()
     end
 
@@ -343,12 +343,6 @@ end
 
 -- HELP
 function FiveSecondRule:PrintHelp() 
-    print("# Five Second Rule")
-    print("#    - /fsr unlock (U)   Unlock the frame and enable drag.")
-    print("#                         - Hold LEFT mouse button (on the frame) to move.")
-    print("#                         - Hold RIGHT mouse button (on the frame) to resize.")
-    print("#    - /fsr lock (L)     Lock the frame and disable drag.")
-    print("#    - /fsr reset        Resets all settings.")
-    print("#    - /fsr help         Print this help message.")
-    print("# Source: https://github.com/smp4903/five-second-rule")
+    local colorHex = "2979ff"
+    print("|cff"..colorHex.."FiveSecondRule loaded - /fsr")
 end
