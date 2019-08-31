@@ -56,7 +56,7 @@ function UIFactory:MakeEditBox(name, parent, title, w, h, enter_func)
 end
 
 function UIFactory:MakeButton(name, parent, width, height, text, textSize, color, on_click_func)
-    local button = CreateFrame('Button', ADDON_NAME .. name, parent, "UIPanelButtonTemplate")
+    local button = CreateFrame('Button', name, parent, "UIPanelButtonTemplate")
     button:SetSize(width, height)
     button:SetText(text)
     button:SetScript('OnClick', on_click_func)
