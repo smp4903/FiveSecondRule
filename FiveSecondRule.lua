@@ -49,6 +49,10 @@ function FiveSecondRule:Init()
     FiveSecondRule_Options.unlocked = false
 
     -- Create UI
+    FiveSecondRule:Update()
+end
+
+function FiveSecondRule:Update()
     FiveSecondRule:UpdateStatusBar()
     FiveSecondRule:UpdateTickBar()
 end
