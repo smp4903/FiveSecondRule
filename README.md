@@ -20,6 +20,12 @@ See the example screenshots below.
     - Hold LEFT mouse button (on the frame) to move.
 
     - Hold RIGHT mouse button (on the frame) to resize.
+
+  **/fsr flat <OPTION>**   Set flat bar mode
+
+    - ON : set the bat to use just a flat color, non textured
+
+    - OFF : set the bar to use a texture, non flat
                          
   **/fsr lock**     Lock the frame and disable drag.
 

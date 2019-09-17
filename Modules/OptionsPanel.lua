@@ -32,6 +32,7 @@ OptionsPanelFrame:SetScript("OnEvent",
 
 function OptionsPanelFrame:UpdateOptionValues()
     frame.content.ticks:SetChecked(FiveSecondRule_Options.showTicks == true)
+    frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -79,6 +80,17 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         end)
         frame.content.ticks = ticks
     end 
+
+    if (not frame.content.flat) then
+        local flat = UIFactory:MakeCheckbox(ADDON_NAME.."flat", frame.content, "Check to make the bar to use a flat color.")
+        flat.label:SetText("Flat bar")
+        flat:SetPoint("TOPLEFT", 10, -60)
+        flat:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.flat = self:GetChecked()
+            FiveSecondRule:Update()
+        end)
+        frame.content.flat = flat        
+    end     
 
     -- BAR
     local barWidth = UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
