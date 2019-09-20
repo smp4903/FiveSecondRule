@@ -122,6 +122,16 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar.value:SetShadowOffset(1, -1)
     statusbar.value:SetTextColor(1, 1, 1)
 
+    -- SPARK
+    if not (statusbar.bg.spark) then
+        local spark = statusbar:CreateTexture(nil, "OVERLAY")
+        spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+        spark:SetWidth(16)
+        spark:SetVertexColor(1, 1, 1)
+        spark:SetBlendMode("ADD")        
+        statusbar.bg.spark = spark
+    end    
+
     FiveSecondRule:SetDefaultFont(statusbar)
 
     if (not FiveSecondRule_Options.unlocked) then
@@ -151,7 +161,7 @@ function FiveSecondRule:UpdateTickBar()
     tickbar:SetStatusBarColor(0.95, 0.95, 0.95)
 
     if FiveSecondRule_Options.flat then
-        tickbar:GetStatusBarTexture():SetColorTexture(0.85, 0.85, 0.85, 1)
+        tickbar:GetStatusBarTexture():SetColorTexture(0.55, 0.55, 0.55, 1)
     end     
 
     -- BACKGROUND
@@ -164,7 +174,7 @@ function FiveSecondRule:UpdateTickBar()
     tickbar.bg:SetAlpha(0.8)
 
     if FiveSecondRule_Options.flat then
-        tickbar.bg:SetColorTexture(0.55, 0.55, 0.55, 0.8)
+        tickbar.bg:SetColorTexture(0.35, 0.35, 0.35, 0.8)
     end
 
     -- TEXT
@@ -176,6 +186,16 @@ function FiveSecondRule:UpdateTickBar()
     tickbar.value:SetJustifyH("LEFT")
     tickbar.value:SetShadowOffset(1, -1)
     tickbar.value:SetTextColor(1, 1, 1, 1)
+
+    -- SPARK
+    if not (tickbar.bg.spark) then
+        local spark = tickbar:CreateTexture(nil, "OVERLAY")
+        spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+        spark:SetWidth(16)        
+        spark:SetVertexColor(1, 1, 1)
+        spark:SetBlendMode("ADD")
+        tickbar.bg.spark = spark
+    end    
 
     FiveSecondRule:SetDefaultFont(tickbar)
 
@@ -266,9 +286,11 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
             if (mp5StartTime > 0) then
                 local remaining = (mp5StartTime - now)
 
-                if (remaining > 0) then
+                if (remaining > 0) then                    
                     statusbar:SetValue(remaining)
                     statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                    local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
+                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)                    
                 else
                     gainingMana = true
                     mp5StartTime = 0
@@ -298,6 +320,8 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     local val = manaTickTime - now
                     tickbar:SetValue(manaRegenTime - val)
                     tickbar.value:SetText(string.format("%.1f", val).."s")
+                    local ratio = FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime))
+                    tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", ratio-2, 0)      
                 end
             end
         end
