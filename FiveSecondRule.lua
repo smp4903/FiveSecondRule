@@ -12,7 +12,8 @@ local defaults = {
     ["barWidth"] = DEFAULT_BAR_WIDTH,
     ["barHeight"] = DEFAULT_BAR_HEIGHT,
     ["barLeft"] = 90,
-    ["barTop"] = -68
+    ["barTop"] = -68,
+    ["flat"] = false,
 }
 
 -- CONSTANTS
@@ -93,6 +94,10 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar:GetStatusBarTexture():SetVertTile(false)
     statusbar:SetStatusBarColor(0, 0, 0.95)
 
+    if FiveSecondRule_Options.flat then
+        statusbar:GetStatusBarTexture():SetColorTexture(0, 0, 0.95, 1)
+    end    
+
     -- BACKGROUND
     if (not statusbar.bg) then
         statusbar.bg = statusbar:CreateTexture(nil, "BACKGROUND")
@@ -101,6 +106,10 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar.bg:SetAllPoints(true)
     statusbar.bg:SetVertexColor(0, 0, 0.55)
     statusbar.bg:SetAlpha(0.5)
+
+    if FiveSecondRule_Options.flat then
+        statusbar.bg:SetColorTexture(0, 0, 0.55, 0.5)
+    end
 
     -- TEXT
     if (not statusbar.value) then
@@ -112,6 +121,16 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar.value:SetJustifyH("LEFT")
     statusbar.value:SetShadowOffset(1, -1)
     statusbar.value:SetTextColor(1, 1, 1)
+
+    -- SPARK
+    if not (statusbar.bg.spark) then
+        local spark = statusbar:CreateTexture(nil, "OVERLAY")
+        spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+        spark:SetWidth(16)
+        spark:SetVertexColor(1, 1, 1)
+        spark:SetBlendMode("ADD")        
+        statusbar.bg.spark = spark
+    end    
 
     FiveSecondRule:SetDefaultFont(statusbar)
 
@@ -141,6 +160,10 @@ function FiveSecondRule:UpdateTickBar()
     tickbar:GetStatusBarTexture():SetVertTile(false)
     tickbar:SetStatusBarColor(0.95, 0.95, 0.95)
 
+    if FiveSecondRule_Options.flat then
+        tickbar:GetStatusBarTexture():SetColorTexture(0.55, 0.55, 0.55, 1)
+    end     
+
     -- BACKGROUND
     if (not tickbar.bg) then
         tickbar.bg = tickbar:CreateTexture(nil, "BACKGROUND")
@@ -149,6 +172,10 @@ function FiveSecondRule:UpdateTickBar()
     tickbar.bg:SetAllPoints(true)
     tickbar.bg:SetVertexColor(0.55, 0.55, 0.55)
     tickbar.bg:SetAlpha(0.8)
+
+    if FiveSecondRule_Options.flat then
+        tickbar.bg:SetColorTexture(0.35, 0.35, 0.35, 0.8)
+    end
 
     -- TEXT
     if (not tickbar.value) then
@@ -159,6 +186,16 @@ function FiveSecondRule:UpdateTickBar()
     tickbar.value:SetJustifyH("LEFT")
     tickbar.value:SetShadowOffset(1, -1)
     tickbar.value:SetTextColor(1, 1, 1, 1)
+
+    -- SPARK
+    if not (tickbar.bg.spark) then
+        local spark = tickbar:CreateTexture(nil, "OVERLAY")
+        spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+        spark:SetWidth(16)        
+        spark:SetVertexColor(1, 1, 1)
+        spark:SetBlendMode("ADD")
+        tickbar.bg.spark = spark
+    end    
 
     FiveSecondRule:SetDefaultFont(tickbar)
 
@@ -249,9 +286,11 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
             if (mp5StartTime > 0) then
                 local remaining = (mp5StartTime - now)
 
-                if (remaining > 0) then
+                if (remaining > 0) then                    
                     statusbar:SetValue(remaining)
                     statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                    local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
+                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)                    
                 else
                     gainingMana = true
                     mp5StartTime = 0
@@ -281,6 +320,8 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     local val = manaTickTime - now
                     tickbar:SetValue(manaRegenTime - val)
                     tickbar.value:SetText(string.format("%.1f", val).."s")
+                    local ratio = FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime))
+                    tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", ratio-2, 0)      
                 end
             end
         end
@@ -344,6 +385,11 @@ function FiveSecondRule:reset()
     FiveSecondRule_Options = AddonUtils:deepcopy(defaults)
 
     FiveSecondRule:Init()
+end
+
+function FiveSecondRule:flat(flat)
+    FiveSecondRule_Options.flat = flat;
+    FiveSecondRule:Update();
 end
 
 -- HELP

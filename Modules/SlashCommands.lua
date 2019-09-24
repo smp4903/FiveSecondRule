@@ -9,6 +9,16 @@ function SlashCmdList.FSR(msg, editbox)
         FiveSecondRule:unlock()
     end
 
+    if cmd == "flat on" or cmd == "f on" then
+        print("Five Second Rule - flat mode ON.")
+        FiveSecondRule:flat(true)
+    end
+
+    if cmd == "flat off" or cmd == "f off" then
+        print("Five Second Rule - flat mode OFF.")
+        FiveSecondRule:flat(false)
+    end
+
     if cmd == "lock" or cmd == "l" then
         print("Five Second Rule - LOCKED.")
         FiveSecondRule:lock()
