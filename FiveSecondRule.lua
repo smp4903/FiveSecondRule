@@ -83,7 +83,6 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar:SetResizable(true)
     statusbar:EnableMouse(FiveSecondRule_Options.unlocked)
     statusbar:SetClampedToScreen(true)
-    statusbar:SetFrameStrata("BACKGROUND");
 
     -- VALUE
     statusbar:SetMinMaxValues(0, mp5delay)
