@@ -271,6 +271,14 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 end
 
 function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
+    local isDead = UnitIsDead("player")
+
+    if isDead then
+      statusbar:Hide()
+      tickbar:Hide()
+      return
+    end
+
     local now = GetTime()
     local newMana = FiveSecondRule:getPlayerMana()
 
