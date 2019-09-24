@@ -33,10 +33,8 @@ See the example screenshots below.
 
 ### Screenshots
 
-![Chat](https://i.imgur.com/1Rg8Hcm.jpg)
+![FSR Countdown](https://www.warcrafttavern.com/wp-content/uploads/2019/05/Screenshot-2019-09-25-at-00.10.45.png)
 
-![Example 1](https://i.imgur.com/8gIcIBz.jpg)
+![Mana Ticks](https://www.warcrafttavern.com/wp-content/uploads/2019/05/Screenshot-2019-09-25-at-00.10.51.png)
 
-![Example 2](https://i.imgur.com/it2kyVv.jpg)
-
-![Example 3](https://i.imgur.com/jm0ULKH.jpg)
+![Options Panel](https://www.warcrafttavern.com/wp-content/uploads/2019/05/Screenshot-2019-09-25-at-00.12.08.png)
