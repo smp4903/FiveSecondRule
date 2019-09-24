@@ -1,15 +1,9 @@
 # FiveSecondRule
 
-This is an addon for **World of Warcraft Classic** (set to release on August 27. 2019).
+This is an addon for **World of Warcraft Classic**
 
-### NOTICE: Make sure the folder is named "FiveSecondRule" when installing the addon.
-
-The purpose of this addon is to track the so-called "5-second-rule" (5SR), which refers to the time needed to elapse after spending mana, for mana regen to resume. Notable, this rule excludes "mp5"-gear. 
-
-So far you can only configure the frame slightly:
-
-* Move the frame around.
-* Resize the frame by hand/dragging (no number inputs).
+The purpose of this addon is to track the so-called "5-second-rule" (5SR), which refers to the time needed to elapse after spending mana, for mana regen to resume.
+Notable, this rule excludes "mp5"-gear.
 
 See the example screenshots below.
 
@@ -21,22 +15,21 @@ See the example screenshots below.
 
     - Hold RIGHT mouse button (on the frame) to resize.
 
+  **/fsr lock**     Lock the frame and disable drag.
+
   **/fsr flat <OPTION>**   Set flat bar mode
 
     - ON : set the bat to use just a flat color, non textured
 
     - OFF : set the bar to use a texture, non flat
-                         
-  **/fsr lock**     Lock the frame and disable drag.
 
   **/fsr reset**    Resets the position and size of the frame.
 
   **/fsr help**     Print help message.
 
-### Planned Work
+### Known Issues
 
-- Add options frame.
-- Add optional warnings when on low mana (motivate usage of 5SR).
+- Check out the issues tab in this repository.
 
 ### Screenshots
 
