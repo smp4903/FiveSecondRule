@@ -14,6 +14,7 @@ local defaults = {
     ["barLeft"] = 90,
     ["barTop"] = -68,
     ["flat"] = false,
+    ["showText"] = true,
 }
 
 -- CONSTANTS
@@ -295,7 +296,13 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
                 if (remaining > 0) then                    
                     statusbar:SetValue(remaining)
-                    statusbar.value:SetText(string.format("%.1f", remaining).."s")
+
+                    if (FiveSecondRule_Options.showText == true) then
+                        statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                    else
+                        statusbar.value:SetText("")
+                    end
+
                     local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
                     statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)                    
                 else
@@ -326,7 +333,13 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
         
                     local val = manaTickTime - now
                     tickbar:SetValue(manaRegenTime - val)
-                    tickbar.value:SetText(string.format("%.1f", val).."s")
+
+                    if (FiveSecondRule_Options.showText == true) then
+                        tickbar.value:SetText(string.format("%.1f", val).."s")
+                    else
+                        tickbar.value:SetText("")
+                    end
+
                     local ratio = FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime))
                     tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", ratio-2, 0)      
                 end

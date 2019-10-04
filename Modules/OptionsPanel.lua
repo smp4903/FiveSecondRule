@@ -33,6 +33,7 @@ OptionsPanelFrame:SetScript("OnEvent",
 function OptionsPanelFrame:UpdateOptionValues()
     frame.content.ticks:SetChecked(FiveSecondRule_Options.showTicks == true)
     frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
+    frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -81,6 +82,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         frame.content.ticks = ticks
     end 
 
+    -- FLAT DESIGN
     if (not frame.content.flat) then
         local flat = UIFactory:MakeCheckbox(ADDON_NAME.."flat", frame.content, "Check to make the bar to use a flat color.")
         flat.label:SetText("Flat bar")
@@ -90,6 +92,18 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule:Update()
         end)
         frame.content.flat = flat        
+    end     
+
+    -- SHOW TEXT?
+    if (not frame.content.showText) then
+        local showText = UIFactory:MakeCheckbox(ADDON_NAME.."showText", frame.content, "Check to show text on the bar (seconds left)")
+        showText.label:SetText("Show text")
+        showText:SetPoint("TOPLEFT", 10, -90)
+        showText:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.showText = self:GetChecked()
+            FiveSecondRule:Update()
+        end)
+        frame.content.showText = showText        
     end     
 
     -- BAR
@@ -124,7 +138,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     local toggleLock = UIFactory:MakeButton(ADDON_NAME.."LockButton", frame.content, 60, 20, toggleLockText, 14, UIFactory:MakeColor(1,1,1,1), function(self)
         lockToggled(self)
     end)
-    toggleLock:SetPoint("TOPLEFT", 10, -120)
+    toggleLock:SetPoint("TOPLEFT", 10, -150)
     frame.content.toggleLock = toggleLock
 
     -- RESET BUTTON
@@ -136,7 +150,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         FiveSecondRule:reset()
         OptionsPanelFrame:UpdateOptionValues(frame.content)
     end)
-    resetButton:SetPoint("TOPRIGHT", -30, -120)
+    resetButton:SetPoint("TOPRIGHT", -15, -150)
     frame.content.resetButton = resetButton
 
     -- BAR LEFT
