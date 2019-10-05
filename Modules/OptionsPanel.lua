@@ -12,7 +12,7 @@ local OptionsPanelFrame = CreateFrame("Frame", ADDON_NAME.."OptionsPanelFrame")
 NAMESPACE.OptionsPanelFrame = OptionsPanelFrame
 
 OptionsPanelFrame:RegisterEvent("PLAYER_LOGIN")
-OptionsPanelFrame:SetScript("OnEvent", 
+OptionsPanelFrame:SetScript("OnEvent",
     function(self, event, arg1, ...)
         if event == "PLAYER_LOGIN" then
             local loader = CreateFrame('Frame', nil, InterfaceOptionsFrame)
@@ -34,10 +34,11 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.ticks:SetChecked(FiveSecondRule_Options.showTicks == true)
     frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
     frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
-    
+    frame.content.transparent:SetChecked(FiveSecondRule_Options.transparent == true)
+
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
-    
+
     frame.content.barLeft:SetText(tostring(FiveSecondRule_Options.barLeft))
     frame.content.barTop:SetText(tostring(FiveSecondRule_Options.barTop))
 end
@@ -51,7 +52,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     frame:Hide()
     frame.parent = parent
     frame.name = name
- 
+
     -- TITLE
     if (not frame.title) then
         local title = frame:CreateFontString(ADDON_NAME.."Title", "OVERLAY", "GameFontNormalLarge")
@@ -80,7 +81,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.showTicks = self:GetChecked()
         end)
         frame.content.ticks = ticks
-    end 
+    end
 
     -- FLAT DESIGN
     if (not frame.content.flat) then
@@ -91,8 +92,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.flat = self:GetChecked()
             FiveSecondRule:Update()
         end)
-        frame.content.flat = flat        
-    end     
+        frame.content.flat = flat
+    end
 
     -- SHOW TEXT?
     if (not frame.content.showText) then
@@ -103,8 +104,20 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.showText = self:GetChecked()
             FiveSecondRule:Update()
         end)
-        frame.content.showText = showText        
-    end     
+        frame.content.showText = showText
+    end
+
+    -- TRANSPARANT?
+    if (not frame.content.transparent) then
+        local transparent = UIFactory:MakeCheckbox(ADDON_NAME.."transparent", frame.content, "Check to make the bar transparent")
+        transparent.label:SetText("Transparant background")
+        transparent:SetPoint("TOPLEFT", 10, -120)
+        transparent:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.transparent = self:GetChecked()
+            FiveSecondRule:Update()
+        end)
+        frame.content.transparent = transparent
+    end
 
     -- BAR
     local barWidth = UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
@@ -125,24 +138,24 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- LOCK / UNLOCK BUTTON
     local function lockToggled(self)
-        if (FiveSecondRule_Options.unlocked) then 
-            FiveSecondRule:lock() 
+        if (FiveSecondRule_Options.unlocked) then
+            FiveSecondRule:lock()
             self:SetText("Unlock")
-        else 
-            FiveSecondRule:unlock() 
+        else
+            FiveSecondRule:unlock()
             self:SetText("Lock")
-        end 
+        end
     end
 
     local toggleLockText = (FiveSecondRule_Options.unlocked and "Lock" or "Unlock")
     local toggleLock = UIFactory:MakeButton(ADDON_NAME.."LockButton", frame.content, 60, 20, toggleLockText, 14, UIFactory:MakeColor(1,1,1,1), function(self)
         lockToggled(self)
     end)
-    toggleLock:SetPoint("TOPLEFT", 10, -150)
+    toggleLock:SetPoint("TOPLEFT", 10, -180)
     frame.content.toggleLock = toggleLock
 
     -- RESET BUTTON
-    local resetButton = UIFactory:MakeButton(ADDON_NAME.."ResetButton", frame.content, 60, 20, "Reset", 14, UIFactory:MakeColor(1,1,1,1), function(self) 
+    local resetButton = UIFactory:MakeButton(ADDON_NAME.."ResetButton", frame.content, 60, 20, "Reset", 14, UIFactory:MakeColor(1,1,1,1), function(self)
         if (FiveSecondRule_Options.unlocked) then
             lockToggled(toggleLock)
         end
@@ -150,7 +163,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         FiveSecondRule:reset()
         OptionsPanelFrame:UpdateOptionValues(frame.content)
     end)
-    resetButton:SetPoint("TOPRIGHT", -15, -150)
+    resetButton:SetPoint("TOPRIGHT", -15, -180)
     frame.content.resetButton = resetButton
 
     -- BAR LEFT

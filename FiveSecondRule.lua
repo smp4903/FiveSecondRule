@@ -1,6 +1,6 @@
 -- NAMESPACE: FiveSecondRule
 local ADDON_NAME = "FiveSecondRule"
-FiveSecondRule = {} 
+FiveSecondRule = {}
 FiveSecondRuleTick = {}
 
 local DEFAULT_BAR_WIDTH = 117
@@ -15,6 +15,7 @@ local defaults = {
     ["barTop"] = -68,
     ["flat"] = false,
     ["showText"] = true,
+    ["transparent"] = false,
 }
 
 -- CONSTANTS
@@ -69,6 +70,7 @@ function FiveSecondRule:LoadOptions()
     end
 end
 
+-- Five Second Updater
 -- UI INFLATION
 function FiveSecondRule:UpdateStatusBar()
     -- POSITION, SIZE
@@ -92,11 +94,15 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     statusbar:GetStatusBarTexture():SetHorizTile(false)
     statusbar:GetStatusBarTexture():SetVertTile(false)
-    statusbar:SetStatusBarColor(0, 0, 0.95)
-
-    if FiveSecondRule_Options.flat then
-        statusbar:GetStatusBarTexture():SetColorTexture(0, 0, 0.95, 1)
-    end    
+    if FiveSecondRule_Options.transparent then
+        statusbar:SetStatusBarColor(0, 0, 0)
+        statusbar:GetStatusBarTexture():SetColorTexture(0, 0, 0, 0)
+    else
+        statusbar:SetStatusBarColor(0, 0, 0.95)
+        if FiveSecondRule_Options.flat then
+            statusbar:GetStatusBarTexture():SetColorTexture(0, 0, 0.95, 1)
+        end
+    end
 
     -- BACKGROUND
     if (not statusbar.bg) then
@@ -104,11 +110,16 @@ function FiveSecondRule:UpdateStatusBar()
     end
     statusbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     statusbar.bg:SetAllPoints(true)
-    statusbar.bg:SetVertexColor(0, 0, 0.55)
-    statusbar.bg:SetAlpha(0.5)
-
-    if FiveSecondRule_Options.flat then
-        statusbar.bg:SetColorTexture(0, 0, 0.55, 0.5)
+    if FiveSecondRule_Options.transparent then
+        statusbar.bg:SetVertexColor(0, 0, 0)
+        statusbar.bg:SetAlpha(0)
+        statusbar.bg:SetColorTexture(0, 0, 0, 0)
+    else
+        statusbar.bg:SetVertexColor(0, 0, 0.55)
+        statusbar.bg:SetAlpha(0.8)
+        if FiveSecondRule_Options.flat then
+            statusbar.bg:SetColorTexture(0, 0, 0.55, 0.5)
+        end
     end
 
     -- TEXT
@@ -128,9 +139,9 @@ function FiveSecondRule:UpdateStatusBar()
         spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
         spark:SetWidth(16)
         spark:SetVertexColor(1, 1, 1)
-        spark:SetBlendMode("ADD")        
+        spark:SetBlendMode("ADD")
         statusbar.bg.spark = spark
-    end    
+    end
 
     FiveSecondRule:SetDefaultFont(statusbar)
 
@@ -139,7 +150,8 @@ function FiveSecondRule:UpdateStatusBar()
     end
 end
 
-function FiveSecondRule:UpdateTickBar() 
+-- Mana tick updater after five second rule
+function FiveSecondRule:UpdateTickBar()
     -- POSITION, SIZE
     tickbar:SetWidth(FiveSecondRule_Options.barWidth)
     tickbar:SetHeight(FiveSecondRule_Options.barHeight)
@@ -158,11 +170,15 @@ function FiveSecondRule:UpdateTickBar()
     tickbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     tickbar:GetStatusBarTexture():SetHorizTile(false)
     tickbar:GetStatusBarTexture():SetVertTile(false)
-    tickbar:SetStatusBarColor(0.95, 0.95, 0.95)
-
-    if FiveSecondRule_Options.flat then
-        tickbar:GetStatusBarTexture():SetColorTexture(0.55, 0.55, 0.55, 1)
-    end     
+    if FiveSecondRule_Options.transparent then
+        tickbar:SetStatusBarColor(0, 0, 0)
+        tickbar:GetStatusBarTexture():SetColorTexture(0, 0, 0, 0)
+    else
+        tickbar:SetStatusBarColor(0.95, 0.95, 0.95)
+        if FiveSecondRule_Options.flat then
+            tickbar:GetStatusBarTexture():SetColorTexture(0.55, 0.55, 0.55, 1)
+        end
+    end
 
     -- BACKGROUND
     if (not tickbar.bg) then
@@ -170,11 +186,16 @@ function FiveSecondRule:UpdateTickBar()
     end
     tickbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     tickbar.bg:SetAllPoints(true)
-    tickbar.bg:SetVertexColor(0.55, 0.55, 0.55)
-    tickbar.bg:SetAlpha(0.8)
-
-    if FiveSecondRule_Options.flat then
-        tickbar.bg:SetColorTexture(0.35, 0.35, 0.35, 0.8)
+    if FiveSecondRule_Options.transparent then
+        tickbar.bg:SetVertexColor(0, 0, 0)
+        tickbar.bg:SetAlpha(0)
+        tickbar.bg:SetColorTexture(0, 0, 0, 0)
+    else
+        tickbar.bg:SetVertexColor(0.55, 0.55, 0.55)
+        tickbar.bg:SetAlpha(0.8)
+        if FiveSecondRule_Options.flat then
+            tickbar.bg:SetColorTexture(0.35, 0.35, 0.35, 0.8)
+        end
     end
 
     -- TEXT
@@ -191,11 +212,11 @@ function FiveSecondRule:UpdateTickBar()
     if not (tickbar.bg.spark) then
         local spark = tickbar:CreateTexture(nil, "OVERLAY")
         spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
-        spark:SetWidth(16)        
+        spark:SetWidth(16)
         spark:SetVertexColor(1, 1, 1)
         spark:SetBlendMode("ADD")
         tickbar.bg.spark = spark
-    end    
+    end
 
     FiveSecondRule:SetDefaultFont(tickbar)
 
@@ -231,7 +252,7 @@ end
 
 function FiveSecondRule:onEvent(self, event, arg1, ...)
     if event == "ADDON_LOADED" then
-        if arg1 == ADDON_NAME then 
+        if arg1 == ADDON_NAME then
             FiveSecondRule:Init()
             FiveSecondRule:PrintHelp()
         end
@@ -247,24 +268,24 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
         if (castCounter == 1) then
              --print("Starting Cast")
              FiveSecondRule:updatePlayerMana()
-        elseif (castCounter == 2) then 
+        elseif (castCounter == 2) then
             --print("Casting...")
             FiveSecondRule:updatePlayerMana()
         else
             --print("Stopped Cast")
             castCounter = 0
         end
-    end   
+    end
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
         if FiveSecondRule:getPlayerMana() < currentMana then
             gainingMana = false
-            
+
             FiveSecondRule:updatePlayerMana()
             mp5StartTime = GetTime() + 5
 
             --print("SUCCESS - spent mana, start 5s rule")
-            
+
             tickbar:Hide()
             statusbar:Show()
         end
@@ -287,14 +308,14 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
     if not (now == nil) then -- time needs to be defined for this to work
         self.sinceLastUpdate = (self.sinceLastUpdate or 0) + sinceLastUpdate;
-        
+
         if ( self.sinceLastUpdate >= updateTimerEverySeconds ) then -- in seconds
             self.sinceLastUpdate = 0;
 
             if (mp5StartTime > 0) then
                 local remaining = (mp5StartTime - now)
 
-                if (remaining > 0) then                    
+                if (remaining > 0) then
                     statusbar:SetValue(remaining)
 
                     if (FiveSecondRule_Options.showText == true) then
@@ -304,12 +325,12 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     end
 
                     local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
-                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)                    
+                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)
                 else
                     gainingMana = true
                     mp5StartTime = 0
 
-                    if not FiveSecondRule_Options.unlocked then 
+                    if not FiveSecondRule_Options.unlocked then
                         statusbar:Hide()
                     end
                 end
@@ -318,19 +339,19 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
         if FiveSecondRule_Options.showTicks then
             if fullmana then
-                if not FiveSecondRule_Options.unlocked then 
-                    tickbar:Hide()  
+                if not FiveSecondRule_Options.unlocked then
+                    tickbar:Hide()
                 end
             else
                 if gainingMana then
                     if newMana > currentMana then
-                        tickbar:Show() 
-        
+                        tickbar:Show()
+
                         manaTickTime = now + manaRegenTime
-        
+
                         FiveSecondRule:updatePlayerMana()
                     end
-        
+
                     local val = manaTickTime - now
                     tickbar:SetValue(manaRegenTime - val)
 
@@ -341,11 +362,11 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     end
 
                     local ratio = FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime))
-                    tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", ratio-2, 0)      
+                    tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", ratio-2, 0)
                 end
             end
         end
-        
+
     end
 end
 
@@ -371,7 +392,7 @@ function FiveSecondRule:updatePlayerMana()
     currentMana = FiveSecondRule:getPlayerMana()
 end
 
-function FiveSecondRule:getPlayerMana() 
+function FiveSecondRule:getPlayerMana()
     return UnitPower("player" , 0); -- 0 is mana
 end
 
@@ -389,7 +410,7 @@ function FiveSecondRule:unlock()
     tickbar:Hide()
 end
 
-function FiveSecondRule:lock() 
+function FiveSecondRule:lock()
     FiveSecondRule_Options.unlocked = false
 
     statusbar:Hide()
@@ -413,7 +434,7 @@ function FiveSecondRule:flat(flat)
 end
 
 -- HELP
-function FiveSecondRule:PrintHelp() 
+function FiveSecondRule:PrintHelp()
     local colorHex = "2979ff"
     print("|cff"..colorHex.."FiveSecondRule loaded - /fsr")
 end
