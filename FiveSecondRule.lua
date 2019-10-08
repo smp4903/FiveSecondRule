@@ -22,6 +22,15 @@ local defaults = {
 local manaRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
+local spiritConsts = { -- key: {Base Regen, Spirit Divisor}
+    ["Druid"] = {15, 4.5},
+    ["Hunter"] = {15, 5},
+    ["Paladin"] = {15, 5},
+    ["Warlock"] = {15, 5},
+    ["Mage"] = {12.5, 4},
+    ["Priest"] = {12.5, 4},
+    ["Shaman"] = {17, 5},
+}
 
 -- STATE VARIABLES
 local gainingMana = false
@@ -29,6 +38,8 @@ local fullmana = false
 local castCounter = 0
 local mp5StartTime = 0
 local manaTickTime = 0
+local lowballMp5 = 0
+local rezExpireTime = nil
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -40,6 +51,8 @@ FiveSecondRuleFrame:RegisterEvent("ADDON_LOADED")
 FiveSecondRuleFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 FiveSecondRuleFrame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED")
 FiveSecondRuleFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+FiveSecondRuleFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+FiveSecondRuleFrame:RegisterEvent("PLAYER_UNGHOST")
 
 -- REGISTER EVENT LISTENERS
 FiveSecondRuleFrame:SetScript("OnUpdate", function(self, sinceLastUpdate) FiveSecondRuleFrame:onUpdate(sinceLastUpdate); end);
@@ -70,7 +83,6 @@ function FiveSecondRule:LoadOptions()
     end
 end
 
--- Five Second Updater
 -- UI INFLATION
 function FiveSecondRule:UpdateStatusBar()
     -- POSITION, SIZE
@@ -150,7 +162,6 @@ function FiveSecondRule:UpdateStatusBar()
     end
 end
 
--- Mana tick updater after five second rule
 function FiveSecondRule:UpdateTickBar()
     -- POSITION, SIZE
     tickbar:SetWidth(FiveSecondRule_Options.barWidth)
@@ -260,19 +271,18 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_ENTERING_WORLD" then
         FiveSecondRule:updatePlayerMana()
+        FiveSecondRule:checkForSickness()
+        FiveSecondRule:updatePlayerMp5()
     end
 
     if event == "CURRENT_SPELL_CAST_CHANGED"  then
         castCounter = castCounter + 1
 
         if (castCounter == 1) then
-             --print("Starting Cast")
              FiveSecondRule:updatePlayerMana()
         elseif (castCounter == 2) then
-            --print("Casting...")
             FiveSecondRule:updatePlayerMana()
         else
-            --print("Stopped Cast")
             castCounter = 0
         end
     end
@@ -284,11 +294,21 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
             FiveSecondRule:updatePlayerMana()
             mp5StartTime = GetTime() + 5
 
-            --print("SUCCESS - spent mana, start 5s rule")
-
             tickbar:Hide()
             statusbar:Show()
         end
+    end
+
+    if event == "PLAYER_EQUIPMENT_CHANGED" then
+        FiveSecondRule:updatePlayerMana()
+        FiveSecondRule:updatePlayerMp5()
+    end
+
+    -- NOTE: Wisdom and some other buffs may be unaffected by sickness.
+    --       Very likely that their mana ticks break the 2s tick timer.
+    if event == "PLAYER_UNGHOST" then
+        FiveSecondRule:checkForSickness()
+        FiveSecondRule:updatePlayerMp5()
     end
 end
 
@@ -316,23 +336,32 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                 local remaining = (mp5StartTime - now)
 
                 if (remaining > 0) then
-                    statusbar:SetValue(remaining)
+                    local name = nil
+                    if newMana - currentMana > lowballMp5 then
+                        for i=1,40 do
+                            name = UnitBuff("player",i)
+                            if name=="Drink" then
+                                break
+                            end
+                        end
+                    end
 
-                    if (FiveSecondRule_Options.showText == true) then
-                        statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                    if name then
+                        FiveSecondRule:resetManaGain()
                     else
-                        statusbar.value:SetText("")
-                    end
+                        statusbar:SetValue(remaining)
 
-                    local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
-                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)
+                        if (FiveSecondRule_Options.showText == true) then
+                            statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                        else
+                            statusbar.value:SetText("")
+                        end
+
+                        local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
+                        statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)
+                    end
                 else
-                    gainingMana = true
-                    mp5StartTime = 0
-
-                    if not FiveSecondRule_Options.unlocked then
-                        statusbar:Hide()
-                    end
+                    FiveSecondRule:resetManaGain()
                 end
             end
         end
@@ -344,11 +373,9 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                 end
             else
                 if gainingMana then
-                    if newMana > currentMana then
+                    if newMana - currentMana > lowballMp5 then
                         tickbar:Show()
-
                         manaTickTime = now + manaRegenTime
-
                         FiveSecondRule:updatePlayerMana()
                     end
 
@@ -390,6 +417,35 @@ end
 
 function FiveSecondRule:updatePlayerMana()
     currentMana = FiveSecondRule:getPlayerMana()
+end
+
+function FiveSecondRule:resetManaGain()
+    gainingMana = true
+    mp5StartTime = 0
+
+    if not FiveSecondRule_Options.unlocked then
+        statusbar:Hide()
+    end
+end
+
+function FiveSecondRule:updatePlayerMp5()
+    local playerClass = UnitClass("player")
+    local _, spirit = UnitStat("player", 5)
+    spiritArray = spiritConsts[playerClass]
+    lowballMp5 = spiritArray[1] + spirit/spiritArray[2]
+
+    if rezExpirationTime and GetTime() > rezExpirationTime then
+        lowballMp5 = lowballMp5 * .75
+    end
+end
+
+function FiveSecondRule:checkForSickness()
+    for i=1,40 do
+        local name, _, _, _, _, expirationTime = UnitDebuff("player",i)
+        if name=="Resurrection Sickness" then
+            rezExpireTime = expirationTime
+        end
+    end
 end
 
 function FiveSecondRule:getPlayerMana()

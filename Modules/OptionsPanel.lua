@@ -109,8 +109,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- TRANSPARANT?
     if (not frame.content.transparent) then
-        local transparent = UIFactory:MakeCheckbox(ADDON_NAME.."transparent", frame.content, "Check to make the bar transparent")
-        transparent.label:SetText("Transparant background")
+        local transparent = UIFactory:MakeCheckbox(ADDON_NAME.."transparent", frame.content, "Check to make the background transparent and only show the spark")
+        transparent.label:SetText("Only show spark")
         transparent:SetPoint("TOPLEFT", 10, -120)
         transparent:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.transparent = self:GetChecked()
