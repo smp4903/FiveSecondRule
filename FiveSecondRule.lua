@@ -303,8 +303,8 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                         statusbar.value:SetText("")
                     end
 
-                    local ratio = FiveSecondRule_Options.barWidth * (remaining/mp5delay)
-                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", ratio, 0)                    
+                    local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
+                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)                    
                 else
                     gainingMana = true
                     mp5StartTime = 0
