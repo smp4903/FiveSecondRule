@@ -3,31 +3,11 @@
 This is an addon for **World of Warcraft Classic**
 
 The purpose of this addon is to track the so-called "5-second-rule" (5SR), which refers to the time needed to elapse after spending mana, for mana regen to resume.
-Notable, this rule excludes "mp5"-gear. The timer starts counting down whenever the player successfully spends mana (instant spells, that don't cost mana, wont reset the 5SR).
+The timer starts counting down whenever the player successfully spends mana (instant spells, that don't cost mana, wont reset the 5SR).
 
 Once the 5SR has been fulfilled, the bar will show incoming mana regen ticks until full mana.
 
-See the example screenshots below.
-
-### Commands
-
-  **/fsr unlock**   Unlock the frame and enable drag.
-
-    - Hold LEFT mouse button (on the frame) to move.
-
-    - Hold RIGHT mouse button (on the frame) to resize.
-
-  **/fsr lock**     Lock the frame and disable drag.
-
-  **/fsr flat <OPTION>**   Set flat bar mode
-
-    - ON : set the bat to use just a flat color, non textured
-
-    - OFF : set the bar to use a texture, non flat
-
-  **/fsr reset**    Resets the position and size of the frame.
-
-  **/fsr help**     Print help message.
+**NOTE:** MP5 (from gear and buffs) is not tracked, as the FSR does not apply to it.
 
 ### Known Issues
 
