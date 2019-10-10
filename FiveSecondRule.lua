@@ -22,6 +22,7 @@ local manaRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
 local mp5Sensitivty = 0.8
+local runningAverageSize = 5
 
 -- STATE VARIABLES
 local gainingMana = false
@@ -32,6 +33,7 @@ local manaTickTime = 0
 local tickSizeRunningWindow = {}
 local manaRegenerated = 0
 local averageManaTick = 0
+local isDead = false
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -243,6 +245,7 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_ENTERING_WORLD" then
         FiveSecondRule:updatePlayerMana()
+        isDead = UnitIsDead("player")
     end
 
     if event == "CURRENT_SPELL_CAST_CHANGED"  then
@@ -276,12 +279,17 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 end
 
 function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
-    local isDead = UnitIsDead("player")
+    local stillDead = UnitIsDead("player")    
 
-    if isDead then
+    if stillDead then
+      isDead = stillDead
+
       statusbar:Hide()
       tickbar:Hide()
       return
+    end
+    if isDead and not stillDead then
+        self.sinceLastUpdate = 0
     end
 
     local now = GetTime()
@@ -330,11 +338,14 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
                     if newMana > currentMana then
                         tickbar:Show() 
-                        
-                        local tickSize = newMana - currentMana
-                        FiveSecondRule:TrackTick(tickSize)
 
-                        if (tickSize > (averageManaTick * mp5Sensitivty)) then
+                        local tickSize = newMana - currentMana
+                        local lowerLimit = averageManaTick * mp5Sensitivty
+                        local upperLimit = averageManaTick * (1 + (1 - mp5Sensitivty))
+                        local shouldLimit = #tickSizeRunningWindow == 10
+
+                        if (not shouldLimit or (lowerLimit < tickSize and tickSize < upperLimit)) then
+                            FiveSecondRule:TrackTick(tickSize)
                             manaTickTime = now + manaRegenTime
                         end
 
@@ -429,9 +440,17 @@ function FiveSecondRule:PrintHelp()
 end
 
 function FiveSecondRule:TrackTick(tick)    
+
+    local isDrinking = FiveSecondRule:PlayerHasBuff("Drink")
+    local hasInervate = FiveSecondRule:PlayerHasBuff("Innervate")
+
+    if (isDrinking or hasInervate) then
+        return
+    end
+
     table.insert(tickSizeRunningWindow, tick)
 
-    if (table.getn(tickSizeRunningWindow) > 10) then
+    if (table.getn(tickSizeRunningWindow) > runningAverageSize) then
         table.remove(tickSizeRunningWindow, 1)
     end
 
@@ -448,4 +467,16 @@ function FiveSecondRule:TrackTick(tick)
     averageManaTick = ave
     manaRegenerated = manaRegenerated + tick
 
+end
+
+function FiveSecondRule:PlayerHasBuff(nameString)
+    for i=1,40 do
+        local name, _, _, _, _, _ = UnitBuff("player",i)
+        if name then
+            if name == nameString then
+                return true
+            end
+        end
+      end
+      return false
 end
