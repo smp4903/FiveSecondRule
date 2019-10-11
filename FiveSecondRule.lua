@@ -447,7 +447,6 @@ end
 
 function FiveSecondRule:updatePlayerRegen()
     baseRegen = FiveSecondRule:GetPlayerBaseRegen()
-    print(baseRegen)
 end
 
 function FiveSecondRule:resetManaGain()
@@ -466,7 +465,6 @@ function FiveSecondRule:GetPlayerBaseRegen()
     local regen = spiritArray[1] + spirit/spiritArray[2]
 
     if (FiveSecondRule:PlayerHasDebuff("Resurrection Sickness")) then
-        print("res sickness")
         regen = regen * 0.25
     end
 
