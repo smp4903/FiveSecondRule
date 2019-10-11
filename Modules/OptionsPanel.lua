@@ -13,7 +13,7 @@ local OptionsPanelFrame = CreateFrame("Frame", ADDON_NAME.."OptionsPanelFrame")
 NAMESPACE.OptionsPanelFrame = OptionsPanelFrame
 
 OptionsPanelFrame:RegisterEvent("PLAYER_LOGIN")
-OptionsPanelFrame:SetScript("OnEvent", 
+OptionsPanelFrame:SetScript("OnEvent",
     function(self, event, arg1, ...)
         if event == "PLAYER_LOGIN" then
             local loader = CreateFrame('Frame', nil, InterfaceOptionsFrame)
@@ -39,7 +39,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
-    
+
     frame.content.barLeft:SetText(tostring(FiveSecondRule_Options.barLeft))
     frame.content.barTop:SetText(tostring(FiveSecondRule_Options.barTop))
 
@@ -67,7 +67,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     frame:Hide()
     frame.parent = parent
     frame.name = name
- 
+
     -- TITLE
     if (not frame.title) then
         local title = frame:CreateFontString(ADDON_NAME.."Title", "OVERLAY", "GameFontNormalLarge")
@@ -96,7 +96,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.showTicks = self:GetChecked()
         end)
         frame.content.ticks = ticks
-    end 
+    end
 
     -- FLAT DESIGN
     if (not frame.content.flat) then
@@ -107,8 +107,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.flat = self:GetChecked()
             FiveSecondRule:Update()
         end)
-        frame.content.flat = flat        
-    end     
+        frame.content.flat = flat
+    end
 
     -- SHOW TEXT?
     if (not frame.content.showText) then
@@ -119,8 +119,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.showText = self:GetChecked()
             FiveSecondRule:Update()
         end)
-        frame.content.showText = showText        
-    end     
+        frame.content.showText = showText
+    end
 
     -- SHOW SPARK?
     if (not frame.content.showSpark) then
@@ -153,13 +153,13 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- LOCK / UNLOCK BUTTON
     local function lockToggled(self)
-        if (FiveSecondRule_Options.unlocked) then 
-            FiveSecondRule:lock() 
+        if (FiveSecondRule_Options.unlocked) then
+            FiveSecondRule:lock()
             self:SetText("Unlock")
-        else 
-            FiveSecondRule:unlock() 
+        else
+            FiveSecondRule:unlock()
             self:SetText("Lock")
-        end 
+        end
     end
 
     local toggleLockText = (FiveSecondRule_Options.unlocked and "Lock" or "Unlock")
@@ -198,8 +198,6 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     barTop:SetPoint("TOPLEFT", 400, -90)
     barTop:SetCursorPosition(0)
     frame.content.barTop = barTop
-
-
 
     -- STATUSBAR STYLE TITLE
     frame.content.statusBarTitle = FiveSecondRule.UIFactory:MakeText(frame.content, "Statusbar Style", 16)
