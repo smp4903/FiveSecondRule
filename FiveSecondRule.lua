@@ -460,8 +460,13 @@ end
 
 function FiveSecondRule:GetPlayerBaseRegen()
     local playerClass = UnitClass("player")
+
+    if (playerClass == "Rogue" or playerClass == "Warrior") then
+        return 0
+    end
+
     local _, spirit = UnitStat("player", 5)
-    spiritArray = spiritConsts[playerClass]
+    local spiritArray = spiritConsts[playerClass]
     local regen = spiritArray[1] + spirit/spiritArray[2]
 
     if (FiveSecondRule:PlayerHasDebuff("Resurrection Sickness")) then
