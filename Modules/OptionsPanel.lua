@@ -35,6 +35,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.ticks:SetChecked(FiveSecondRule_Options.showTicks == true)
     frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
     frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
+    frame.content.showSpark:SetChecked(FiveSecondRule_Options.showSpark == true)
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -88,7 +89,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- WHETHER OR NOT TO SHOW THE MANA TICKS BAR
     if (not frame.content.ticks) then
-        local ticks = UIFactory:MakeCheckbox(ADDON_NAME.."Ticks", frame.content, "Check to show when the next mana regen tick will fulfil.")
+        local ticks = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."Ticks", frame.content, "Check to show when the next mana regen tick will fulfil.")
         ticks.label:SetText("Show Mana Ticks")
         ticks:SetPoint("TOPLEFT", 10, -30)
         ticks:SetScript("OnClick",function(self,button)
@@ -99,7 +100,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- FLAT DESIGN
     if (not frame.content.flat) then
-        local flat = UIFactory:MakeCheckbox(ADDON_NAME.."flat", frame.content, "Check to make the bar to use a flat color.")
+        local flat = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."flat", frame.content, "Check to make the bar to use a flat color.")
         flat.label:SetText("Flat bars")
         flat:SetPoint("TOPLEFT", 10, -60)
         flat:SetScript("OnClick",function(self,button)
@@ -111,7 +112,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- SHOW TEXT?
     if (not frame.content.showText) then
-        local showText = UIFactory:MakeCheckbox(ADDON_NAME.."showText", frame.content, "Check to show text on the bar (seconds left)")
+        local showText = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."showText", frame.content, "Check to show text on the bar (seconds left)")
         showText.label:SetText("Show text")
         showText:SetPoint("TOPLEFT", 10, -90)
         showText:SetScript("OnClick",function(self,button)
@@ -121,8 +122,20 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         frame.content.showText = showText        
     end     
 
+    -- SHOW SPARK?
+    if (not frame.content.showSpark) then
+        local showSpark = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."showSpark", frame.content, "Check to show a Spark on the bar")
+        showSpark.label:SetText("Show spark")
+        showSpark:SetPoint("TOPLEFT", 10, -120)
+        showSpark:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.showSpark = self:GetChecked()
+            FiveSecondRule:Update()
+        end)
+        frame.content.showSpark = showSpark        
+    end     
+
     -- BAR
-    local barWidth = UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
+    local barWidth = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
         FiveSecondRule_Options.barWidth = tonumber(self:GetText())
         FiveSecondRule:Update()
     end)
@@ -130,7 +143,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     barWidth:SetCursorPosition(0)
     frame.content.barWidth = barWidth
 
-    local barHeight = UIFactory:MakeEditBox(ADDON_NAME.."CountdownHeight", frame.content, "Height", 75, 25, function(self)
+    local barHeight = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."CountdownHeight", frame.content, "Height", 75, 25, function(self)
         FiveSecondRule_Options.barHeight = tonumber(self:GetText())
         FiveSecondRule:Update()
     end)
@@ -150,14 +163,14 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     end
 
     local toggleLockText = (FiveSecondRule_Options.unlocked and "Lock" or "Unlock")
-    local toggleLock = UIFactory:MakeButton(ADDON_NAME.."LockButton", frame.content, 60, 20, toggleLockText, 14, UIFactory:MakeColor(1,1,1,1), function(self)
+    local toggleLock = FiveSecondRule.UIFactory:MakeButton(ADDON_NAME.."LockButton", frame.content, 60, 20, toggleLockText, 14, FiveSecondRule.UIFactory:MakeColor(1,1,1,1), function(self)
         lockToggled(self)
     end)
     toggleLock:SetPoint("BOTTOMLEFT", 12, 12)
     frame.content.toggleLock = toggleLock
 
     -- RESET BUTTON
-    local resetButton = UIFactory:MakeButton(ADDON_NAME.."ResetButton", frame.content, 60, 20, "Reset", 14, UIFactory:MakeColor(1,1,1,1), function(self) 
+    local resetButton = FiveSecondRule.UIFactory:MakeButton(ADDON_NAME.."ResetButton", frame.content, 60, 20, "Reset", 14, FiveSecondRule.UIFactory:MakeColor(1,1,1,1), function(self) 
         if (FiveSecondRule_Options.unlocked) then
             lockToggled(toggleLock)
         end
@@ -169,7 +182,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     frame.content.resetButton = resetButton
 
     -- BAR LEFT
-    local barLeft = UIFactory:MakeEditBox(ADDON_NAME.."BarLeft", frame.content, "X (from left)", 75, 25, function(self)
+    local barLeft = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."BarLeft", frame.content, "X (from left)", 75, 25, function(self)
         FiveSecondRule_Options.barLeft = tonumber(self:GetText())
         FiveSecondRule:Update()
     end)
@@ -178,7 +191,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     frame.content.barLeft = barLeft
 
     -- BAR TOP
-    local barTop = UIFactory:MakeEditBox(ADDON_NAME.."BarTop", frame.content, "Y (from top)", 75, 25, function(self)
+    local barTop = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."BarTop", frame.content, "Y (from top)", 75, 25, function(self)
         FiveSecondRule_Options.barTop = tonumber(self:GetText())
         FiveSecondRule:Update()
     end)
@@ -186,12 +199,14 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     barTop:SetCursorPosition(0)
     frame.content.barTop = barTop
 
+
+
     -- STATUSBAR STYLE TITLE
-    frame.content.statusBarTitle = UIFactory:MakeText(frame.content, "Statusbar Style", 16)
-    frame.content.statusBarTitle:SetPoint("TOPLEFT", 12, -150)
+    frame.content.statusBarTitle = FiveSecondRule.UIFactory:MakeText(frame.content, "Statusbar Style", 16)
+    frame.content.statusBarTitle:SetPoint("TOPLEFT", 12, -180)
 
     -- STATUSBAR COLOR PICKER
-    frame.content.statusBarForegroundColorFrame = UIFactory:MakeColorPicker(
+    frame.content.statusBarForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
         ADDON_NAME.."StatusBarColorFrame", 
         frame.content, 
         "Foreground", 
@@ -201,21 +216,21 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
             local editColor = FiveSecondRule_Options.statusBarColor
     
-            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
                 if (not colorPickerStateSet) then
                     colorPickerStateSet = true
                     return
                 end
 
-                FiveSecondRule_Options.statusBarColor = UIFactory:UnpackColor(restore)
+                FiveSecondRule_Options.statusBarColor = FiveSecondRule.UIFactory:UnpackColor(restore)
                 OptionsPanelFrame:UpdateOptionValues()
             end)
         end
     )
-    frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -190)
+    frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -220)
 
     -- STATUSBAR BACKGROUND COLOR PICKER
-    frame.content.statusBarBackgroundColorFrame = UIFactory:MakeColorPicker(
+    frame.content.statusBarBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
         ADDON_NAME.."StatusBarBackgroundColorFrame", 
         frame.content, 
         "Background", 
@@ -225,25 +240,25 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
             local editColor = FiveSecondRule_Options.statusBarBackgroundColor
     
-            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
                 if (not colorPickerStateSet) then
                     colorPickerStateSet = true
                     return
                 end
 
-                FiveSecondRule_Options.statusBarBackgroundColor = UIFactory:UnpackColor(restore)
+                FiveSecondRule_Options.statusBarBackgroundColor = FiveSecondRule.UIFactory:UnpackColor(restore)
                 OptionsPanelFrame:UpdateOptionValues()
             end)
         end
     )
-    frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -190)
+    frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -220)
 
     -- MANA TICKS BAR STYLE TITLE
-    frame.content.manaTicksTitle = UIFactory:MakeText(frame.content, "Mana Ticks Style", 16)
+    frame.content.manaTicksTitle = FiveSecondRule.UIFactory:MakeText(frame.content, "Mana Ticks Style", 16)
     frame.content.manaTicksTitle:SetPoint("TOPLEFT", 12, -250)
 
     -- MANA TICKS BAR COLOR PICKER
-    frame.content.manaTicksForegroundColorFrame = UIFactory:MakeColorPicker(
+    frame.content.manaTicksForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
         ADDON_NAME.."ManaTicksColorFrame", 
         frame.content, 
         "Foreground", 
@@ -253,21 +268,21 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
             local editColor = FiveSecondRule_Options.manaTicksColor
     
-            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
                 if (not colorPickerStateSet) then
                     colorPickerStateSet = true
                     return
                 end
 
-                FiveSecondRule_Options.manaTicksColor = UIFactory:UnpackColor(restore)
+                FiveSecondRule_Options.manaTicksColor = FiveSecondRule.UIFactory:UnpackColor(restore)
                 OptionsPanelFrame:UpdateOptionValues()
             end)
         end
     )
-    frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -290)
+    frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -320)
 
     -- MANA TICKS BAR BACKGROUND COLOR PICKER
-    frame.content.manaTicksBackgroundColorFrame = UIFactory:MakeColorPicker(
+    frame.content.manaTicksBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
         ADDON_NAME.."ManaTicksBackgroundColorFrame", 
         frame.content, 
         "Background", 
@@ -277,18 +292,18 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
             local editColor = FiveSecondRule_Options.manaTicksBackgroundColor
     
-            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
                 if (not colorPickerStateSet) then
                     colorPickerStateSet = true
                     return
                 end
 
-                FiveSecondRule_Options.manaTicksBackgroundColor = UIFactory:UnpackColor(restore)
+                FiveSecondRule_Options.manaTicksBackgroundColor = FiveSecondRule.UIFactory:UnpackColor(restore)
                 OptionsPanelFrame:UpdateOptionValues()
             end)
         end
     )
-    frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -290)
+    frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -320)
 
     -- UPDATE VALUES ON SHOW
     frame:SetScript("OnShow", function(self) OptionsPanelFrame:UpdateOptionValues() end)

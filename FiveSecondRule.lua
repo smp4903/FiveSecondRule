@@ -15,6 +15,7 @@ local defaults = {
     ["barTop"] = -68,
     ["flat"] = false,
     ["showText"] = true,
+    ["showSpark"] = true,
     ["statusBarColor"] = {0,0,1,0.95},
     ["statusBarBackgroundColor"] = {0,0,0,0.55},
     ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
@@ -135,14 +136,21 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar.value:SetTextColor(1, 1, 1)
 
     -- SPARK
-    if not (statusbar.bg.spark) then
-        local spark = statusbar:CreateTexture(nil, "OVERLAY")
-        spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
-        spark:SetWidth(16)
-        spark:SetVertexColor(1, 1, 1)
-        spark:SetBlendMode("ADD")        
-        statusbar.bg.spark = spark
-    end    
+    if (FiveSecondRule_Options.showSpark) then
+        if (not statusbar.bg.spark) then
+            local spark = statusbar:CreateTexture(nil, "OVERLAY")
+            spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+            spark:SetWidth(16)        
+            spark:SetVertexColor(1, 1, 1)
+            spark:SetBlendMode("ADD")
+            statusbar.bg.spark = spark
+        end
+    else
+        if (statusbar.bg.spark) then
+            statusbar.bg.spark:SetTexture(nil)
+            statusbar.bg.spark = nil
+        end
+    end  
 
     FiveSecondRule:SetDefaultFont(statusbar)
 
@@ -202,13 +210,20 @@ function FiveSecondRule:UpdateTickBar()
     tickbar.value:SetTextColor(1, 1, 1, 1)
 
     -- SPARK
-    if not (tickbar.bg.spark) then
-        local spark = tickbar:CreateTexture(nil, "OVERLAY")
-        spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
-        spark:SetWidth(16)        
-        spark:SetVertexColor(1, 1, 1)
-        spark:SetBlendMode("ADD")
-        tickbar.bg.spark = spark
+    if (FiveSecondRule_Options.showSpark) then
+        if (not tickbar.bg.spark) then
+            local spark = tickbar:CreateTexture(nil, "OVERLAY")
+            spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark")
+            spark:SetWidth(16)        
+            spark:SetVertexColor(1, 1, 1)
+            spark:SetBlendMode("ADD")
+            tickbar.bg.spark = spark
+        end
+    else
+        if (tickbar.bg.spark) then
+            tickbar.bg.spark:SetTexture(nil)
+            tickbar.bg.spark = nil
+        end
     end    
 
     FiveSecondRule:SetDefaultFont(tickbar)
@@ -323,8 +338,10 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                         statusbar.value:SetText("")
                     end
 
-                    local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
-                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)                    
+                    if (FiveSecondRule_Options.showSpark) then
+                        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
+                        statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)      
+                    end              
                 else
                     gainingMana = true
                     mp5StartTime = 0
@@ -369,8 +386,10 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                         tickbar.value:SetText("")
                     end
 
-                    local ratio = FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime))
-                    tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", ratio-2, 0)      
+                    if (FiveSecondRule_Options.showSpark) then
+                        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime)), FiveSecondRule_Options.barWidth)
+                        tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", positionLeft-2, 0)      
+                    end
                 end
             end
         end

@@ -1,6 +1,6 @@
-UIFactory = {} 
+FiveSecondRule.UIFactory = {} 
 
-function UIFactory:MakeCheckbox(name, parent, tooltip_text)
+function FiveSecondRule.UIFactory:MakeCheckbox(name, parent, tooltip_text)
     local cb = CreateFrame("CheckButton", name, parent, "UICheckButtonTemplate")
     cb:SetWidth(25)
     cb:SetHeight(25)
@@ -16,7 +16,7 @@ function UIFactory:MakeCheckbox(name, parent, tooltip_text)
     return cb
 end
 
-function UIFactory:MakeText(parent, text, size)
+function FiveSecondRule.UIFactory:MakeText(parent, text, size)
     local text_obj = parent:CreateFontString(nil, "ARTWORK")
     text_obj:SetFont("Fonts/FRIZQT__.ttf", size)
     text_obj:SetJustifyV("CENTER")
@@ -25,9 +25,9 @@ function UIFactory:MakeText(parent, text, size)
     return text_obj
 end
 
-function UIFactory:MakeEditBox(name, parent, title, w, h, enter_func)
+function FiveSecondRule.UIFactory:MakeEditBox(name, parent, title, w, h, enter_func)
     local edit_box_obj = CreateFrame("EditBox", name, parent)
-    edit_box_obj.title_text = UIFactory:MakeText(edit_box_obj, title, 12)
+    edit_box_obj.title_text = FiveSecondRule.UIFactory:MakeText(edit_box_obj, title, 12)
     edit_box_obj.title_text:SetPoint("TOP", 0, 12)
     edit_box_obj:SetBackdrop({
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -55,7 +55,7 @@ function UIFactory:MakeEditBox(name, parent, title, w, h, enter_func)
     return edit_box_obj
 end
 
-function UIFactory:MakeButton(name, parent, width, height, text, textSize, color, on_click_func)
+function FiveSecondRule.UIFactory:MakeButton(name, parent, width, height, text, textSize, color, on_click_func)
     local button = CreateFrame('Button', name, parent, "UIPanelButtonTemplate")
     button:SetSize(width, height)
     button:SetText(text)
@@ -63,13 +63,13 @@ function UIFactory:MakeButton(name, parent, width, height, text, textSize, color
     return button
 end
 
-function UIFactory:MakeColor(r,g,b,a) 
+function FiveSecondRule.UIFactory:MakeColor(r,g,b,a) 
     return {r = r, g = g, b = b, a = a}
 end
 
-function UIFactory:MakeColorPicker(name, parent, title, color, OnShow)
+function FiveSecondRule.UIFactory:MakeColorPicker(name, parent, title, color, OnShow)
     local colorPickerFrame = CreateFrame("Frame", name, parent)
-    colorPickerFrame.title_text = UIFactory:MakeText(colorPickerFrame, title, 12)
+    colorPickerFrame.title_text = FiveSecondRule.UIFactory:MakeText(colorPickerFrame, title, 12)
     colorPickerFrame.title_text:SetPoint("TOP", 0, 12)
     colorPickerFrame:SetSize(75, 25)
     colorPickerFrame.texture = colorPickerFrame:CreateTexture(nil, "BACKGROUND")
@@ -88,7 +88,7 @@ function UIFactory:MakeColorPicker(name, parent, title, color, OnShow)
     return colorPickerFrame
 end
 
-function UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
+function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
     ColorPickerFrame:SetColorRGB(r,g,b);
     ColorPickerFrame.hasOpacity = (a ~= nil);
     
@@ -112,7 +112,7 @@ function UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
 
 end
 
-function UIFactory:UnpackColor(restore) 
+function FiveSecondRule.UIFactory:UnpackColor(restore) 
     local newR, newG, newB, newA
             
     if restore then
