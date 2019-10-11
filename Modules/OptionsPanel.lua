@@ -4,6 +4,7 @@ local NAMESPACE = FiveSecondRule
 
 -- STATE
 local frame = nil
+local colorPickerStateSet = false
 
 -- LOADER
 local OptionsPanelFrame = CreateFrame("Frame", ADDON_NAME.."OptionsPanelFrame")
@@ -40,6 +41,20 @@ function OptionsPanelFrame:UpdateOptionValues()
     
     frame.content.barLeft:SetText(tostring(FiveSecondRule_Options.barLeft))
     frame.content.barTop:SetText(tostring(FiveSecondRule_Options.barTop))
+
+    local sfgc = FiveSecondRule_Options.statusBarColor
+    frame.content.statusBarForegroundColorFrame:SetBackdropColor(sfgc[1], sfgc[2], sfgc[3], sfgc[4])
+
+    local sbgc = FiveSecondRule_Options.statusBarBackgroundColor
+    frame.content.statusBarBackgroundColorFrame:SetBackdropColor(sbgc[1], sbgc[2], sbgc[3], sbgc[4])
+
+    local mtfgc = FiveSecondRule_Options.manaTicksColor
+    frame.content.manaTicksForegroundColorFrame:SetBackdropColor(mtfgc[1], mtfgc[2], mtfgc[3], mtfgc[4])
+
+    local mtbgc = FiveSecondRule_Options.manaTicksBackgroundColor
+    frame.content.manaTicksBackgroundColorFrame:SetBackdropColor(mtbgc[1], mtbgc[2], mtbgc[3], mtbgc[4])
+
+    FiveSecondRule:Update()
 end
 
 -- GUI
@@ -85,7 +100,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- FLAT DESIGN
     if (not frame.content.flat) then
         local flat = UIFactory:MakeCheckbox(ADDON_NAME.."flat", frame.content, "Check to make the bar to use a flat color.")
-        flat.label:SetText("Flat bar")
+        flat.label:SetText("Flat bars")
         flat:SetPoint("TOPLEFT", 10, -60)
         flat:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.flat = self:GetChecked()
@@ -138,7 +153,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     local toggleLock = UIFactory:MakeButton(ADDON_NAME.."LockButton", frame.content, 60, 20, toggleLockText, 14, UIFactory:MakeColor(1,1,1,1), function(self)
         lockToggled(self)
     end)
-    toggleLock:SetPoint("TOPLEFT", 10, -150)
+    toggleLock:SetPoint("BOTTOMLEFT", 12, 12)
     frame.content.toggleLock = toggleLock
 
     -- RESET BUTTON
@@ -150,7 +165,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         FiveSecondRule:reset()
         OptionsPanelFrame:UpdateOptionValues(frame.content)
     end)
-    resetButton:SetPoint("TOPRIGHT", -15, -150)
+    resetButton:SetPoint("TOPRIGHT", -5, 0)
     frame.content.resetButton = resetButton
 
     -- BAR LEFT
@@ -171,9 +186,113 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     barTop:SetCursorPosition(0)
     frame.content.barTop = barTop
 
+    -- STATUSBAR STYLE TITLE
+    frame.content.statusBarTitle = UIFactory:MakeText(frame.content, "Statusbar Style", 16)
+    frame.content.statusBarTitle:SetPoint("TOPLEFT", 12, -150)
+
+    -- STATUSBAR COLOR PICKER
+    frame.content.statusBarForegroundColorFrame = UIFactory:MakeColorPicker(
+        ADDON_NAME.."StatusBarColorFrame", 
+        frame.content, 
+        "Foreground", 
+        FiveSecondRule_Options.statusBarColor,  
+        function (self, button)
+            colorPickerStateSet = false
+
+            local editColor = FiveSecondRule_Options.statusBarColor
+    
+            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                if (not colorPickerStateSet) then
+                    colorPickerStateSet = true
+                    return
+                end
+
+                FiveSecondRule_Options.statusBarColor = UIFactory:UnpackColor(restore)
+                OptionsPanelFrame:UpdateOptionValues()
+            end)
+        end
+    )
+    frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -190)
+
+    -- STATUSBAR BACKGROUND COLOR PICKER
+    frame.content.statusBarBackgroundColorFrame = UIFactory:MakeColorPicker(
+        ADDON_NAME.."StatusBarBackgroundColorFrame", 
+        frame.content, 
+        "Background", 
+        FiveSecondRule_Options.statusBarBackgroundColor, 
+        function (self, button)
+            colorPickerStateSet = false
+
+            local editColor = FiveSecondRule_Options.statusBarBackgroundColor
+    
+            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                if (not colorPickerStateSet) then
+                    colorPickerStateSet = true
+                    return
+                end
+
+                FiveSecondRule_Options.statusBarBackgroundColor = UIFactory:UnpackColor(restore)
+                OptionsPanelFrame:UpdateOptionValues()
+            end)
+        end
+    )
+    frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -190)
+
+    -- MANA TICKS BAR STYLE TITLE
+    frame.content.manaTicksTitle = UIFactory:MakeText(frame.content, "Mana Ticks Style", 16)
+    frame.content.manaTicksTitle:SetPoint("TOPLEFT", 12, -250)
+
+    -- MANA TICKS BAR COLOR PICKER
+    frame.content.manaTicksForegroundColorFrame = UIFactory:MakeColorPicker(
+        ADDON_NAME.."ManaTicksColorFrame", 
+        frame.content, 
+        "Foreground", 
+        FiveSecondRule_Options.manaTicksColor, 
+        function (self, button)
+            colorPickerStateSet = false
+
+            local editColor = FiveSecondRule_Options.manaTicksColor
+    
+            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                if (not colorPickerStateSet) then
+                    colorPickerStateSet = true
+                    return
+                end
+
+                FiveSecondRule_Options.manaTicksColor = UIFactory:UnpackColor(restore)
+                OptionsPanelFrame:UpdateOptionValues()
+            end)
+        end
+    )
+    frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -290)
+
+    -- MANA TICKS BAR BACKGROUND COLOR PICKER
+    frame.content.manaTicksBackgroundColorFrame = UIFactory:MakeColorPicker(
+        ADDON_NAME.."ManaTicksBackgroundColorFrame", 
+        frame.content, 
+        "Background", 
+        FiveSecondRule_Options.manaTicksBackgroundColor, 
+        function (self, button)
+            colorPickerStateSet = false
+
+            local editColor = FiveSecondRule_Options.manaTicksBackgroundColor
+    
+            UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                if (not colorPickerStateSet) then
+                    colorPickerStateSet = true
+                    return
+                end
+
+                FiveSecondRule_Options.manaTicksBackgroundColor = UIFactory:UnpackColor(restore)
+                OptionsPanelFrame:UpdateOptionValues()
+            end)
+        end
+    )
+    frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -290)
 
     -- UPDATE VALUES ON SHOW
     frame:SetScript("OnShow", function(self) OptionsPanelFrame:UpdateOptionValues() end)
 
     return frame
 end
+

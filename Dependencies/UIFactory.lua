@@ -66,3 +66,60 @@ end
 function UIFactory:MakeColor(r,g,b,a) 
     return {r = r, g = g, b = b, a = a}
 end
+
+function UIFactory:MakeColorPicker(name, parent, title, color, OnShow)
+    local colorPickerFrame = CreateFrame("Frame", name, parent)
+    colorPickerFrame.title_text = UIFactory:MakeText(colorPickerFrame, title, 12)
+    colorPickerFrame.title_text:SetPoint("TOP", 0, 12)
+    colorPickerFrame:SetSize(75, 25)
+    colorPickerFrame.texture = colorPickerFrame:CreateTexture(nil, "BACKGROUND")
+    colorPickerFrame:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 26,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4}
+    })
+    colorPickerFrame:SetBackdropColor(color[1], color[2], color[3], color[4])
+    colorPickerFrame.texture:SetAllPoints(true)
+    colorPickerFrame:SetScript("OnMouseDown", OnShow)
+
+    return colorPickerFrame
+end
+
+function UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
+    ColorPickerFrame:SetColorRGB(r,g,b);
+    ColorPickerFrame.hasOpacity = (a ~= nil);
+    
+    if (ColorPickerFrame.hasOpacity) then
+        ColorPickerFrame.opacity = a
+        OpacitySliderFrame:SetValue(a) -- the value is not set automatically by the ColorPickerFrame
+    end
+
+    ColorPickerFrame.previousValues = {r,g,b,a};
+    ColorPickerFrame.func, ColorPickerFrame.opacityFunc, ColorPickerFrame.cancelFunc = changedCallback, changedCallback, changedCallback;
+
+    ColorPickerFrame:SetScript("OnShow", function () 
+        FiveSecondRule:unlock();
+    end)
+    ColorPickerFrame:SetScript("OnHide", function () 
+        FiveSecondRule:lock();
+    end)
+
+    ColorPickerFrame:Hide(); -- Need to run the OnShow handler.
+    ColorPickerFrame:Show();
+
+end
+
+function UIFactory:UnpackColor(restore) 
+    local newR, newG, newB, newA
+            
+    if restore then
+     newR, newG, newB, newA = unpack(restore)
+    else
+     newA, newR, newG, newB = OpacitySliderFrame:GetValue(), ColorPickerFrame:GetColorRGB()
+    end
+
+    return {newR, newG, newB, newA}
+end

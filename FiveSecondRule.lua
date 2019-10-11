@@ -15,6 +15,10 @@ local defaults = {
     ["barTop"] = -68,
     ["flat"] = false,
     ["showText"] = true,
+    ["statusBarColor"] = {0,0,1,0.5},
+    ["statusBarBackgroundColor"] = {0,0,0,0.55},
+    ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
+    ["manaTicksBackgroundColor"] = {0.35, 0.35, 0.35, 0.8},
 }
 
 -- CONSTANTS
@@ -95,26 +99,28 @@ function FiveSecondRule:UpdateStatusBar()
     statusbar:SetMinMaxValues(0, mp5delay)
 
     -- FOREGROUND
+    local sc = FiveSecondRule_Options.statusBarColor
     statusbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     statusbar:GetStatusBarTexture():SetHorizTile(false)
     statusbar:GetStatusBarTexture():SetVertTile(false)
-    statusbar:SetStatusBarColor(0, 0, 0.95)
+    statusbar:SetStatusBarColor(sc[1], sc[2], sc[3], sc[4])
 
     if FiveSecondRule_Options.flat then
-        statusbar:GetStatusBarTexture():SetColorTexture(0, 0, 0.95, 1)
+        statusbar:GetStatusBarTexture():SetColorTexture(sc[1], sc[2], sc[3], sc[4])
     end    
 
     -- BACKGROUND
+    local sbc = FiveSecondRule_Options.statusBarBackgroundColor
     if (not statusbar.bg) then
         statusbar.bg = statusbar:CreateTexture(nil, "BACKGROUND")
     end
     statusbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     statusbar.bg:SetAllPoints(true)
-    statusbar.bg:SetVertexColor(0, 0, 0.55)
-    statusbar.bg:SetAlpha(0.5)
+    statusbar.bg:SetVertexColor(sbc[1], sbc[2], sbc[3])
+    statusbar.bg:SetAlpha(sbc[4])
 
     if FiveSecondRule_Options.flat then
-        statusbar.bg:SetColorTexture(0, 0, 0.55, 0.5)
+        statusbar.bg:SetColorTexture(sbc[1], sbc[2], sbc[3], sbc[4])
     end
 
     -- TEXT
@@ -161,26 +167,28 @@ function FiveSecondRule:UpdateTickBar()
     tickbar:SetMinMaxValues(0, 2)
 
     -- FOREGROUND
+    local fgc = FiveSecondRule_Options.manaTicksColor
     tickbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     tickbar:GetStatusBarTexture():SetHorizTile(false)
     tickbar:GetStatusBarTexture():SetVertTile(false)
-    tickbar:SetStatusBarColor(0.95, 0.95, 0.95)
+    tickbar:SetStatusBarColor(fgc[1], fgc[2], fgc[3], fgc[4])
 
     if FiveSecondRule_Options.flat then
-        tickbar:GetStatusBarTexture():SetColorTexture(0.55, 0.55, 0.55, 1)
+        tickbar:GetStatusBarTexture():SetColorTexture(fgc[1], fgc[2], fgc[3], fgc[4])
     end     
 
     -- BACKGROUND
+    local bgc = FiveSecondRule_Options.manaTicksBackgroundColor
     if (not tickbar.bg) then
         tickbar.bg = tickbar:CreateTexture(nil, "BACKGROUND")
     end
     tickbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
     tickbar.bg:SetAllPoints(true)
-    tickbar.bg:SetVertexColor(0.55, 0.55, 0.55)
-    tickbar.bg:SetAlpha(0.8)
+    tickbar.bg:SetVertexColor(bgc[1], bgc[2], bgc[3])
+    tickbar.bg:SetAlpha(bgc[4])
 
     if FiveSecondRule_Options.flat then
-        tickbar.bg:SetColorTexture(0.35, 0.35, 0.35, 0.8)
+        tickbar.bg:SetColorTexture(bgc[1], bgc[2], bgc[3], bgc[4])
     end
 
     -- TEXT
