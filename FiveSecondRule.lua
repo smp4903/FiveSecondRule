@@ -20,6 +20,8 @@ local defaults = {
     ["statusBarBackgroundColor"] = {0,0,0,0.55},
     ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
     ["manaTicksBackgroundColor"] = {0.35, 0.35, 0.35, 0.8},
+    ["tickSizeRunningWindow"] = {},
+    ["averageManaTick"] = 0
 }
 
 -- CONSTANTS
@@ -27,7 +29,7 @@ local manaRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
 local mp5Sensitivty = 0.65
-local runningAverageSize = 5
+local runningAverageSize = 10
 
 -- LOCALIZED STRINGS
 local SPIRIT_TAP_NAME = "Spirit Tap"
@@ -42,8 +44,6 @@ local gainingMana = false
 local castCounter = 0
 local mp5StartTime = 0
 local manaTickTime = 0
-local tickSizeRunningWindow = {}
-local averageManaTick = 0
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -409,50 +409,6 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
     FiveSecondRule:updatePlayerMana()
 end
 
-function FiveSecondRule:IsValidTick(tick) 
-    local low = averageManaTick * mp5Sensitivty
-    local high = averageManaTick * (1 + (1 - mp5Sensitivty))
-
-    if (tick == nil or tick == 0) then
-        return
-    end
-
-    if (#tickSizeRunningWindow < runningAverageSize) then
-        return true
-    end
-
-    -- UNDER
-    if (tick < low) then
-        -- Ticks below our base mana regen is triggered by MP5-regen.
-        return false
-    end
-
-    -- OVER
-    if (tick > high) then
-        -- Spirit Tap
-        if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
-            return true
-        end
-
-        -- Blessing of Wisdom or Mana Spring Totem
-        if (math.abs(averageManaTick - tick) <= 35) then
-            return true
-        end
-
-        local sicknessTick = false
-        -- Resurrection Sickness lowers regen, but does not seem to be reduced by 75% like stats.
-        if (FiveSecondRule:PlayerHasDebuff(RESURRECTION_SICKNESS_NAME)) then
-            sicknessTick = tick < high * 3 -- 3 is an arbitrary number selected through trial and error
-        end
-
-        -- Larger ticks can be triggered by drinking or by getting Innervate, which both align with the spirit-based regen.
-        -- It can also be triggered by consumables, which are spontaneous. Thus, consumables are excluded.
-        return FiveSecondRule:PlayerHasBuff(DRINK_NAME) or FiveSecondRule:PlayerHasBuff(INNERVATE_NAME) or sicknessTick
-    end
-
-    return true
-end
-
 -- HELPER FUNCTIONS
 function FiveSecondRule:SetDefaultFont(target)
     local height = target:GetHeight()
@@ -555,6 +511,22 @@ function FiveSecondRule:PlayerHasDebuff(nameString)
       return false, nil
 end
 
+function FiveSecondRule:IsValidTick(tick) 
+    if (tick == nil or tick == 0) then
+        return false
+    end
+
+    local low = FiveSecondRule_Options.averageManaTick * mp5Sensitivty
+    local high = FiveSecondRule_Options.averageManaTick * (1 + (1 - mp5Sensitivty))
+
+    if (FiveSecondRule:PlayerHasBuff(BLESSING_OF_WISDOM_NAME) or FiveSecondRule:PlayerHasBuff(GREATER_BLESSING_OF_WISDOM_NAME)) then
+        high = high + 30
+    end
+
+    return tick > low
+end
+
+
 function FiveSecondRule:TrackTick(tick)    
 
     local isDrinking = FiveSecondRule:PlayerHasBuff(DRINK_NAME)
@@ -564,32 +536,28 @@ function FiveSecondRule:TrackTick(tick)
         return
     end
 
-    if not (FiveSecondRule:IsValidTick(tick)) then
-        return
-    end
+    table.insert(FiveSecondRule_Options.tickSizeRunningWindow, tick)
 
-    table.insert(tickSizeRunningWindow, tick)
-
-    if (table.getn(tickSizeRunningWindow) > runningAverageSize) then
-        table.remove(tickSizeRunningWindow, 1)
+    if (table.getn(FiveSecondRule_Options.tickSizeRunningWindow) > runningAverageSize) then
+        table.remove(FiveSecondRule_Options.tickSizeRunningWindow, 1)
     end
 
     local sum = 0
     local ave = 0
-    local elements = #tickSizeRunningWindow
+    local elements = #FiveSecondRule_Options.tickSizeRunningWindow
     
     for i = 1, elements do
-        sum = sum + tickSizeRunningWindow[i]
+        sum = sum + FiveSecondRule_Options.tickSizeRunningWindow[i]
     end
     
     ave = sum / elements
 
-    averageManaTick = ave
+    FiveSecondRule_Options.averageManaTick = ave
 end
 
 function FiveSecondRule:ResetRunningAverage()
-    tickSizeRunningWindow = {}
-    averageManaTick = 0
+    FiveSecondRule_Options.tickSizeRunningWindow = {}
+    FiveSecondRule_Options.averageManaTick = 0
 end
 
 function FiveSecondRule:SpellIdToName(id)
