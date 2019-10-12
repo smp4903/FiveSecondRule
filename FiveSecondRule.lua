@@ -26,24 +26,24 @@ local defaults = {
 local manaRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
-local mp5Sensitivty = 0.8
+local mp5Sensitivty = 0.65
+local runningAverageSize = 5
 
-local spiritConsts = { -- key: {Base Regen, Spirit Divisor}
-    ["Druid"] = {15, 4.5},
-    ["Hunter"] = {15, 5},
-    ["Paladin"] = {15, 5},
-    ["Warlock"] = {15, 5},
-    ["Mage"] = {12.5, 4},
-    ["Priest"] = {12.5, 4},
-    ["Shaman"] = {17, 5},
-}
+-- LOCALIZED STRINGS
+local SPIRIT_TAP_NAME = "Spirit Tap"
+local RESURRECTION_SICKNESS_NAME = "Resurrection Sickness"
+local BLESSING_OF_WISDOM_NAME = "Blessing of Wisdom"
+local GREATER_BLESSING_OF_WISDOM_NAME = "Greater Blessing of Wisdom"
+local INNERVATE_NAME = "Innervate"
+local DRINK_NAME = "Drink"
 
 -- STATE VARIABLES
 local gainingMana = false
 local castCounter = 0
 local mp5StartTime = 0
 local manaTickTime = 0
-local isDead = false
+local tickSizeRunningWindow = {}
+local averageManaTick = 0
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -57,7 +57,6 @@ FiveSecondRuleFrame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED")
 FiveSecondRuleFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 FiveSecondRuleFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 FiveSecondRuleFrame:RegisterEvent("PLAYER_UNGHOST")
-FiveSecondRuleFrame:RegisterEvent("UNIT_AURA")
 
 -- REGISTER EVENT LISTENERS
 FiveSecondRuleFrame:SetScript("OnUpdate", function(self, sinceLastUpdate) FiveSecondRuleFrame:onUpdate(sinceLastUpdate); end);
@@ -68,6 +67,9 @@ function FiveSecondRule:Init()
     -- Initialize FiveSecondRule_Options
     FiveSecondRule:LoadOptions()
     FiveSecondRule_Options.unlocked = false
+
+    -- LOCALIZATION
+    FiveSecondRule:LoadSpells()
 
     -- Create UI
     FiveSecondRule:Update()
@@ -86,6 +88,15 @@ function FiveSecondRule:LoadOptions()
             FiveSecondRule_Options[key] = value
         end
     end
+end
+
+function FiveSecondRule:LoadSpells()
+    SPIRIT_TAP_NAME = FiveSecondRule:SpellIdToName(15338)
+    RESURRECTION_SICKNESS_NAME = FiveSecondRule:SpellIdToName(15007)
+    BLESSING_OF_WISDOM_NAME = FiveSecondRule:SpellIdToName(19854) -- Rank doesnt matter
+    GREATER_BLESSING_OF_WISDOM_NAME = FiveSecondRule:SpellIdToName(25918) -- Rank doesnt matter
+    INNERVATE_NAME = FiveSecondRule:SpellIdToName(29166)
+    DRINK_NAME = FiveSecondRule:SpellIdToName(1135)
 end
 
 -- UI INFLATION
@@ -276,7 +287,6 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_ENTERING_WORLD" then
         FiveSecondRule:updatePlayerMana()
-        FiveSecondRule:updatePlayerRegen()
     end
 
     if event == "CURRENT_SPELL_CAST_CHANGED"  then
@@ -305,15 +315,11 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_EQUIPMENT_CHANGED" then
         FiveSecondRule:updatePlayerMana()
-        FiveSecondRule:updatePlayerRegen()
+        FiveSecondRule:ResetRunningAverage()
     end
 
     if event == "PLAYER_UNGHOST" then
-        FiveSecondRule:updatePlayerRegen()
-    end
-
-    if event == "UNIT_AURA" and arg1 == "player" then
-        FiveSecondRule:updatePlayerRegen()
+        FiveSecondRule:ResetRunningAverage()
     end
 end
 
@@ -368,8 +374,14 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                 end
             else
                 if gainingMana then
-
                     if newMana > currentMana then
+
+                        if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
+                            tickSize = tickSize / 2
+                        end
+
+                        FiveSecondRule:TrackTick(tickSize)
+
                         if (validTick) then
                             tickbar:Show() 
                             manaTickTime = now + manaRegenTime
@@ -398,8 +410,16 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 end
 
 function FiveSecondRule:IsValidTick(tick) 
-    local low = baseRegen * mp5Sensitivty
-    local high = baseRegen * (1 + (1 - mp5Sensitivty))
+    local low = averageManaTick * mp5Sensitivty
+    local high = averageManaTick * (1 + (1 - mp5Sensitivty))
+
+    if (tick == nil or tick == 0) then
+        return
+    end
+
+    if (#tickSizeRunningWindow < runningAverageSize) then
+        return true
+    end
 
     -- UNDER
     if (tick < low) then
@@ -409,15 +429,25 @@ function FiveSecondRule:IsValidTick(tick)
 
     -- OVER
     if (tick > high) then
+        -- Spirit Tap
+        if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
+            return true
+        end
+
+        -- Blessing of Wisdom or Mana Spring Totem
+        if (math.abs(averageManaTick - tick) <= 35) then
+            return true
+        end
+
         local sicknessTick = false
         -- Resurrection Sickness lowers regen, but does not seem to be reduced by 75% like stats.
-        if (FiveSecondRule:PlayerHasDebuff("Resurrection Sickness")) then
+        if (FiveSecondRule:PlayerHasDebuff(RESURRECTION_SICKNESS_NAME)) then
             sicknessTick = tick < high * 3 -- 3 is an arbitrary number selected through trial and error
         end
 
         -- Larger ticks can be triggered by drinking or by getting Innervate, which both align with the spirit-based regen.
         -- It can also be triggered by consumables, which are spontaneous. Thus, consumables are excluded.
-        return FiveSecondRule:PlayerHasBuff("Drink") or FiveSecondRule:PlayerHasBuff("Innervate") or sicknessTick
+        return FiveSecondRule:PlayerHasBuff(DRINK_NAME) or FiveSecondRule:PlayerHasBuff(INNERVATE_NAME) or sicknessTick
     end
 
     return true
@@ -445,10 +475,6 @@ function FiveSecondRule:updatePlayerMana()
     currentMana = FiveSecondRule:getPlayerMana()
 end
 
-function FiveSecondRule:updatePlayerRegen()
-    baseRegen = FiveSecondRule:GetPlayerBaseRegen()
-end
-
 function FiveSecondRule:resetManaGain()
     gainingMana = true
     mp5StartTime = 0
@@ -456,24 +482,6 @@ function FiveSecondRule:resetManaGain()
     if not FiveSecondRule_Options.unlocked then
         statusbar:Hide()
     end
-end
-
-function FiveSecondRule:GetPlayerBaseRegen()
-    local playerClass = UnitClass("player")
-
-    if (playerClass == "Rogue" or playerClass == "Warrior") then
-        return 0
-    end
-
-    local _, spirit = UnitStat("player", 5)
-    local spiritArray = spiritConsts[playerClass]
-    local regen = spiritArray[1] + spirit/spiritArray[2]
-
-    if (FiveSecondRule:PlayerHasDebuff("Resurrection Sickness")) then
-        regen = regen * 0.25
-    end
-
-    return regen
 end
 
 function FiveSecondRule:getPlayerMana()
@@ -545,4 +553,46 @@ function FiveSecondRule:PlayerHasDebuff(nameString)
         end
       end
       return false, nil
+end
+
+function FiveSecondRule:TrackTick(tick)    
+
+    local isDrinking = FiveSecondRule:PlayerHasBuff(DRINK_NAME)
+    local hasInervate = FiveSecondRule:PlayerHasBuff(INNERVATE_NAME)
+
+    if (isDrinking or hasInervate) then
+        return
+    end
+
+    if not (FiveSecondRule:IsValidTick(tick)) then
+        return
+    end
+
+    table.insert(tickSizeRunningWindow, tick)
+
+    if (table.getn(tickSizeRunningWindow) > runningAverageSize) then
+        table.remove(tickSizeRunningWindow, 1)
+    end
+
+    local sum = 0
+    local ave = 0
+    local elements = #tickSizeRunningWindow
+    
+    for i = 1, elements do
+        sum = sum + tickSizeRunningWindow[i]
+    end
+    
+    ave = sum / elements
+
+    averageManaTick = ave
+end
+
+function FiveSecondRule:ResetRunningAverage()
+    tickSizeRunningWindow = {}
+    averageManaTick = 0
+end
+
+function FiveSecondRule:SpellIdToName(id)
+    local name, _, _, _, _, _ = GetSpellInfo(id)
+    return name
 end
