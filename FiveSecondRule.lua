@@ -19,17 +19,14 @@ local defaults = {
     ["statusBarColor"] = {0,0,1,0.95},
     ["statusBarBackgroundColor"] = {0,0,0,0.55},
     ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
-    ["manaTicksBackgroundColor"] = {0.35, 0.35, 0.35, 0.8},
-    ["tickSizeRunningWindow"] = {},
-    ["averageManaTick"] = 0
+    ["manaTicksBackgroundColor"] = {0.35, 0.35, 0.35, 0.8}
 }
 
 -- CONSTANTS
 local manaRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
-local mp5Sensitivty = 0.65
-local runningAverageSize = 10
+local lowestTickTimePossible = 1.85 -- observed
 
 -- LOCALIZED STRINGS
 local SPIRIT_TAP_NAME = "Spirit Tap"
@@ -38,12 +35,15 @@ local BLESSING_OF_WISDOM_NAME = "Blessing of Wisdom"
 local GREATER_BLESSING_OF_WISDOM_NAME = "Greater Blessing of Wisdom"
 local INNERVATE_NAME = "Innervate"
 local DRINK_NAME = "Drink"
+local EVOCATE_NAME = "Evocation"
 
 -- STATE VARIABLES
 local gainingMana = false
-local castCounter = 0
 local mp5StartTime = 0
 local manaTickTime = 0
+local calibrateMana = {}
+local calibrateManaCount = 0
+local lastValidTickTime = nil
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -97,6 +97,7 @@ function FiveSecondRule:LoadSpells()
     GREATER_BLESSING_OF_WISDOM_NAME = FiveSecondRule:SpellIdToName(25918) -- Rank doesnt matter
     INNERVATE_NAME = FiveSecondRule:SpellIdToName(29166)
     DRINK_NAME = FiveSecondRule:SpellIdToName(1135)
+    EVOCATE_NAME = FiveSecondRule:SpellIdToName(12051)
 end
 
 -- UI INFLATION
@@ -289,24 +290,19 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
         FiveSecondRule:updatePlayerMana()
     end
 
-    if event == "CURRENT_SPELL_CAST_CHANGED"  then
-        castCounter = castCounter + 1
-
-        if (castCounter == 1) then
-             FiveSecondRule:updatePlayerMana()
-        elseif (castCounter == 2) then
-            FiveSecondRule:updatePlayerMana()
-        else
-            castCounter = 0
-        end
-    end
+    -- removed cast counter event because it only tracked start/cancel events
+    -- and messed up tick timings. all that matters is the finish event
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        if FiveSecondRule:getPlayerMana() < currentMana then
+        if arg1 == "player" and FiveSecondRule:getPlayerMana() < currentMana then
             gainingMana = false
 
             FiveSecondRule:updatePlayerMana()
             mp5StartTime = GetTime() + 5
+
+            calibrateMana = {}
+            calibrateManaCount = 0
+            lastValidTickTime = nil
 
             tickbar:Hide()
             statusbar:Show()
@@ -315,11 +311,11 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 
     if event == "PLAYER_EQUIPMENT_CHANGED" then
         FiveSecondRule:updatePlayerMana()
-        FiveSecondRule:ResetRunningAverage()
     end
 
     if event == "PLAYER_UNGHOST" then
-        FiveSecondRule:ResetRunningAverage()
+        -- Update mana since players don't rez at full
+        FiveSecondRule:updatePlayerMana()
     end
 end
 
@@ -334,7 +330,6 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
     local newMana = FiveSecondRule:getPlayerMana()
     local fullmana = newMana >= FiveSecondRule:getPlayerManaMax()
     local tickSize = newMana - currentMana
-    local validTick = FiveSecondRule:IsValidTick(tickSize)
 
     if not (now == nil) then -- time needs to be defined for this to work
         self.sinceLastUpdate = (self.sinceLastUpdate or 0) + sinceLastUpdate;
@@ -346,18 +341,44 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                 local remaining = (mp5StartTime - now)
 
                 if (remaining >= 0) then
-                    statusbar:Show()
-                    statusbar:SetValue(remaining)
+                    local isBreakingRegen = false
 
-                    if (FiveSecondRule_Options.showText == true) then
-                        statusbar.value:SetText(string.format("%.1f", remaining).."s")
-                    else
-                        statusbar.value:SetText("")
+                    -- Use the 5 seconds to find the 2s interval
+                    if tickSize > 0 then
+                        FiveSecondRule:calibratePlayerMana(now)
+
+                        if lastValidTickTime ~= nil and now - lastValidTickTime > lowestTickTimePossible then
+                            lastValidTickTime = now
+                        end
+
+                        isBreakingRegen = FiveSecondRule:PlayerHasBuffs({
+                            [DRINK_NAME] = true,
+                            [EVOCATE_NAME] = true
+                        })
+
+                        if isBreakingRegen then
+                            lastValidTickTime = now
+                        end
+
+                        FiveSecondRule:updatePlayerMana()
                     end
 
-                    if (FiveSecondRule_Options.showSpark) then
-                        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
-                        statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)   
+                    if isBreakingRegen then
+                        FiveSecondRule:resetManaGain()
+                    else
+                        statusbar:Show()
+                        statusbar:SetValue(remaining)
+
+                        if (FiveSecondRule_Options.showText == true) then
+                            statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                        else
+                            statusbar.value:SetText("")
+                        end
+
+                        if (FiveSecondRule_Options.showSpark) then
+                            local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
+                            statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)   
+                        end
                     end
                 else
                     FiveSecondRule:resetManaGain()
@@ -374,20 +395,26 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                 end
             else
                 if gainingMana then
-                    if newMana > currentMana then
+                    -- show it early so we can hold spark at 0
+                    tickbar:Show()
 
-                        if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
-                            tickSize = tickSize / 2
-                        end
+                    if tickSize > 0 then
+                        if lastValidTickTime ~= nil then -- nil after first load or rez
+                            if now - lastValidTickTime > lowestTickTimePossible then
+                                lastValidTickTime = now
+                                FiveSecondRule:updatePlayerMana()
+                            end
 
-                        FiveSecondRule:TrackTick(tickSize)
+                            manaTickTime = lastValidTickTime + manaRegenTime
+                        else
+                            FiveSecondRule:calibratePlayerMana(now)
 
-                        if (validTick) then
-                            tickbar:Show() 
                             manaTickTime = now + manaRegenTime
+                            FiveSecondRule:updatePlayerMana()
                         end
                     end
 
+                    -- Only relevant after at least one tick has been observed
                     local val = manaTickTime - now
                     tickbar:SetValue(manaRegenTime - val)
 
@@ -398,15 +425,18 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     end
 
                     if (FiveSecondRule_Options.showSpark) then
-                        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime)), FiveSecondRule_Options.barWidth)
+                        local positionLeft = nil
+                        if val < 0 then -- hold the spark on the left until good tick data becomes available
+                            positionLeft = math.min(FiveSecondRule_Options.barWidth * 0, FiveSecondRule_Options.barWidth)
+                        else
+                            positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime)), FiveSecondRule_Options.barWidth)
+                        end
                         tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", positionLeft-2, 0)      
                     end
                 end
             end
         end
     end
-
-    FiveSecondRule:updatePlayerMana()
 end
 
 -- HELPER FUNCTIONS
@@ -427,6 +457,7 @@ function FiveSecondRule:SetDefaultFont(target)
     target.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
 end
 
+-- NOTE: Only update the player's mana when a tick has occured
 function FiveSecondRule:updatePlayerMana()
     currentMana = FiveSecondRule:getPlayerMana()
 end
@@ -438,6 +469,23 @@ function FiveSecondRule:resetManaGain()
     if not FiveSecondRule_Options.unlocked then
         statusbar:Hide()
     end
+end
+
+function FiveSecondRule:calibratePlayerMana(curTime)
+    -- 10 is an abitrary unreachable; the max number of ticks that can occur naturally in 5s
+    for i=0,9 do
+        if calibrateMana[i] then
+            if curTime - calibrateMana[i] > lowestTickTimePossible then
+                lastValidTickTime = curTime
+                break
+            end
+        else
+            break
+        end
+    end
+
+    calibrateMana[calibrateManaCount] = curTime
+    calibrateManaCount = (calibrateManaCount + 1) % 10
 end
 
 function FiveSecondRule:getPlayerMana()
@@ -487,11 +535,17 @@ function FiveSecondRule:PrintHelp()
     print("|cff"..colorHex.."FiveSecondRule loaded - /fsr")
 end
 
-function FiveSecondRule:PlayerHasBuff(nameString)
+function FiveSecondRule:PlayerHasBuffs(nameParams)
+    if type(nameParams) == "string" then
+        nameParams = { 
+            [tmp] = true
+        }
+    end
+
     for i=1,40 do
         local name, _, _, _, _, expirationTime = UnitBuff("player",i)
         if name then
-            if name == nameString then
+            if nameParams[name] ~= nil then
                 return true, expirationTime
             end
         end
@@ -499,65 +553,22 @@ function FiveSecondRule:PlayerHasBuff(nameString)
       return false, nil
 end
 
-function FiveSecondRule:PlayerHasDebuff(nameString)
+function FiveSecondRule:PlayerHasDebuffs(nameParams)
+    if type(nameParams) == "string" then
+        nameParams = { 
+            [tmp] = true
+        }
+    end
+
     for i=1,40 do
         local name, _, _, _, _, expirationTime = UnitDebuff("player",i)
         if name then
-            if name == nameString then
+            if nameParams[name] ~= nil then
                 return true, expirationTime
             end
         end
       end
       return false, nil
-end
-
-function FiveSecondRule:IsValidTick(tick) 
-    if (tick == nil or tick == 0) then
-        return false
-    end
-
-    local low = FiveSecondRule_Options.averageManaTick * mp5Sensitivty
-    local high = FiveSecondRule_Options.averageManaTick * (1 + (1 - mp5Sensitivty))
-
-    if (FiveSecondRule:PlayerHasBuff(BLESSING_OF_WISDOM_NAME) or FiveSecondRule:PlayerHasBuff(GREATER_BLESSING_OF_WISDOM_NAME)) then
-        high = high + 30
-    end
-
-    return tick > low
-end
-
-
-function FiveSecondRule:TrackTick(tick)    
-
-    local isDrinking = FiveSecondRule:PlayerHasBuff(DRINK_NAME)
-    local hasInervate = FiveSecondRule:PlayerHasBuff(INNERVATE_NAME)
-
-    if (isDrinking or hasInervate) then
-        return
-    end
-
-    table.insert(FiveSecondRule_Options.tickSizeRunningWindow, tick)
-
-    if (table.getn(FiveSecondRule_Options.tickSizeRunningWindow) > runningAverageSize) then
-        table.remove(FiveSecondRule_Options.tickSizeRunningWindow, 1)
-    end
-
-    local sum = 0
-    local ave = 0
-    local elements = #FiveSecondRule_Options.tickSizeRunningWindow
-    
-    for i = 1, elements do
-        sum = sum + FiveSecondRule_Options.tickSizeRunningWindow[i]
-    end
-    
-    ave = sum / elements
-
-    FiveSecondRule_Options.averageManaTick = ave
-end
-
-function FiveSecondRule:ResetRunningAverage()
-    FiveSecondRule_Options.tickSizeRunningWindow = {}
-    FiveSecondRule_Options.averageManaTick = 0
 end
 
 function FiveSecondRule:SpellIdToName(id)
