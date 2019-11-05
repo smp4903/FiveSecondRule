@@ -98,13 +98,23 @@ function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
     end
 
     ColorPickerFrame.previousValues = {r,g,b,a};
-    ColorPickerFrame.func, ColorPickerFrame.opacityFunc, ColorPickerFrame.cancelFunc = changedCallback, changedCallback, changedCallback;
+
+    ColorPickerFrame.func = changedCallback
 
     ColorPickerFrame:SetScript("OnShow", function () 
         FiveSecondRule:unlock();
+
+        -- Add callbacks when the color picker is shown, since they might have been removed from previous use
+        ColorPickerFrame.cancelFunc = changedCallback
+        ColorPickerFrame.opacityFunc = changedCallback
     end)
+
     ColorPickerFrame:SetScript("OnHide", function () 
         FiveSecondRule:lock();
+
+        -- Remove callbacks to avoid leaking callbacks when using multiple color pickers
+        ColorPickerFrame.cancelFunc = nil
+        ColorPickerFrame.opacityFunc = nil
     end)
 
     ColorPickerFrame:Hide(); -- Need to run the OnShow handler.

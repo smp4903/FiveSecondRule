@@ -204,104 +204,100 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     frame.content.statusBarTitle:SetPoint("TOPLEFT", 12, -180)
 
     -- STATUSBAR COLOR PICKER
-    frame.content.statusBarForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
-        ADDON_NAME.."StatusBarColorFrame", 
-        frame.content, 
-        "Foreground", 
-        FiveSecondRule_Options.statusBarColor,  
-        function (self, button)
-            colorPickerStateSet = false
+    if (not frame.content.statusBarForegroundColorFrame) then
+        frame.content.statusBarForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."StatusBarColorFrame", frame.content, "Foreground", FiveSecondRule_Options.statusBarColor)
+        frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -220)
+        frame.content.statusBarForegroundColorFrame:SetScript("OnMouseDown",  
+            function (self, button)
+                colorPickerStateSet = false
 
-            local editColor = FiveSecondRule_Options.statusBarColor
-    
-            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
-                if (not colorPickerStateSet) then
-                    colorPickerStateSet = true
-                    return
-                end
+                local editColor = FiveSecondRule_Options.statusBarColor
 
-                FiveSecondRule_Options.statusBarColor = FiveSecondRule.UIFactory:UnpackColor(restore)
-                OptionsPanelFrame:UpdateOptionValues()
-            end)
-        end
-    )
-    frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -220)
+                FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                    if (not colorPickerStateSet) then
+                        colorPickerStateSet = true
+                        return
+                    end
+
+                    FiveSecondRule_Options.statusBarColor = FiveSecondRule.UIFactory:UnpackColor(restore)
+                    OptionsPanelFrame:UpdateOptionValues()
+                end)
+            end
+        )
+    end
 
     -- STATUSBAR BACKGROUND COLOR PICKER
-    frame.content.statusBarBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
-        ADDON_NAME.."StatusBarBackgroundColorFrame", 
-        frame.content, 
-        "Background", 
-        FiveSecondRule_Options.statusBarBackgroundColor, 
-        function (self, button)
-            colorPickerStateSet = false
+    if (not frame.content.statusBarBackgroundColorFrame) then
+        frame.content.statusBarBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."StatusBarBackgroundColorFrame",  frame.content, "Background", FiveSecondRule_Options.statusBarBackgroundColor)
+        frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -220)
+        frame.content.statusBarBackgroundColorFrame:SetScript("OnMouseDown",  
+            function (self, button)
+                colorPickerStateSet = false
 
-            local editColor = FiveSecondRule_Options.statusBarBackgroundColor
-    
-            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
-                if (not colorPickerStateSet) then
-                    colorPickerStateSet = true
-                    return
-                end
+                local editColor = FiveSecondRule_Options.statusBarBackgroundColor
 
-                FiveSecondRule_Options.statusBarBackgroundColor = FiveSecondRule.UIFactory:UnpackColor(restore)
-                OptionsPanelFrame:UpdateOptionValues()
-            end)
-        end
-    )
-    frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -220)
+                FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                    if (not colorPickerStateSet) then
+                        colorPickerStateSet = true
+                        return
+                    end
+
+                    FiveSecondRule_Options.statusBarBackgroundColor = FiveSecondRule.UIFactory:UnpackColor(restore)
+                    OptionsPanelFrame:UpdateOptionValues()
+                end)
+            end
+        )
+    end
 
     -- MANA TICKS BAR STYLE TITLE
     frame.content.manaTicksTitle = FiveSecondRule.UIFactory:MakeText(frame.content, "Mana Ticks Style", 16)
     frame.content.manaTicksTitle:SetPoint("TOPLEFT", 12, -250)
 
     -- MANA TICKS BAR COLOR PICKER
-    frame.content.manaTicksForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
-        ADDON_NAME.."ManaTicksColorFrame", 
-        frame.content, 
-        "Foreground", 
-        FiveSecondRule_Options.manaTicksColor, 
-        function (self, button)
-            colorPickerStateSet = false
+    if (not frame.content.manaTicksForegroundColorFrame) then
+        frame.content.manaTicksForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."ManaTicksColorFrame",  frame.content, "Foreground", FiveSecondRule_Options.manaTicksColor)
+        frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -320)
+        frame.content.manaTicksForegroundColorFrame:SetScript("OnMouseDown",  
+            function (self, button)
+                colorPickerStateSet = false
 
-            local editColor = FiveSecondRule_Options.manaTicksColor
-    
-            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
-                if (not colorPickerStateSet) then
-                    colorPickerStateSet = true
-                    return
-                end
+                local editColor = FiveSecondRule_Options.manaTicksColor
 
-                FiveSecondRule_Options.manaTicksColor = FiveSecondRule.UIFactory:UnpackColor(restore)
-                OptionsPanelFrame:UpdateOptionValues()
-            end)
-        end
-    )
-    frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -320)
+                FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                    if (not colorPickerStateSet) then
+                        colorPickerStateSet = true
+                        return
+                    end
+
+                    FiveSecondRule_Options.manaTicksColor = FiveSecondRule.UIFactory:UnpackColor(restore)
+                    OptionsPanelFrame:UpdateOptionValues()
+                end)
+            end
+        )
+    end
 
     -- MANA TICKS BAR BACKGROUND COLOR PICKER
-    frame.content.manaTicksBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(
-        ADDON_NAME.."ManaTicksBackgroundColorFrame", 
-        frame.content, 
-        "Background", 
-        FiveSecondRule_Options.manaTicksBackgroundColor, 
-        function (self, button)
-            colorPickerStateSet = false
+    if (not frame.content.manaTicksBackgroundColorFrame) then
+        frame.content.manaTicksBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."ManaTicksBackgroundColorFrame", frame.content, "Background",  FiveSecondRule_Options.manaTicksBackgroundColor)
+        frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -320)
+        frame.content.manaTicksBackgroundColorFrame:SetScript("OnMouseDown",  
+            function (self, button)
+                colorPickerStateSet = false
 
-            local editColor = FiveSecondRule_Options.manaTicksBackgroundColor
-    
-            FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
-                if (not colorPickerStateSet) then
-                    colorPickerStateSet = true
-                    return
-                end
+                local editColor = FiveSecondRule_Options.manaTicksBackgroundColor
 
-                FiveSecondRule_Options.manaTicksBackgroundColor = FiveSecondRule.UIFactory:UnpackColor(restore)
-                OptionsPanelFrame:UpdateOptionValues()
-            end)
-        end
-    )
-    frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -320)
+                FiveSecondRule.UIFactory:ShowColorPicker(editColor[1], editColor[2], editColor[3], editColor[4], function (restore)
+                    if (not colorPickerStateSet) then
+                        colorPickerStateSet = true
+                        return
+                    end
+
+                    FiveSecondRule_Options.manaTicksBackgroundColor = FiveSecondRule.UIFactory:UnpackColor(restore)
+                    OptionsPanelFrame:UpdateOptionValues()
+                end)
+            end
+        )
+    end
 
     -- UPDATE VALUES ON SHOW
     frame:SetScript("OnShow", function(self) OptionsPanelFrame:UpdateOptionValues() end)
