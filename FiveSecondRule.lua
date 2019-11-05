@@ -29,7 +29,7 @@ local manaRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
 local mp5Sensitivty = 0.65
-local runningAverageSize = 10
+local runningAverageSize = 5
 
 -- LOCALIZED STRINGS
 local SPIRIT_TAP_NAME = "Spirit Tap"
