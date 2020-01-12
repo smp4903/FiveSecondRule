@@ -36,6 +36,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
     frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
     frame.content.showSpark:SetChecked(FiveSecondRule_Options.showSpark == true)
+    frame.content.alwaysShowTicks:SetChecked(FiveSecondRule_Options.alwaysShowTicks == true)
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -132,6 +133,18 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule:Update()
         end)
         frame.content.showSpark = showSpark        
+    end   
+
+    -- ALWAYS SHOW MANA TICKS?
+    if (not frame.content.alwaysShowTicks) then
+        local alwaysShowTicks = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."alwaysShowTicks", frame.content, "Check to always show incoming mana ticks")
+        alwaysShowTicks.label:SetText("Always show mana ticks")
+        alwaysShowTicks:SetPoint("TOPLEFT", 10, -150)
+        alwaysShowTicks:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.alwaysShowTicks = self:GetChecked()
+            FiveSecondRule:Update()
+        end)
+        frame.content.alwaysShowTicks = alwaysShowTicks        
     end     
 
     -- BAR

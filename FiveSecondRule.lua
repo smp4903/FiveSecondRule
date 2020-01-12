@@ -3,6 +3,11 @@ local ADDON_NAME = "FiveSecondRule"
 FiveSecondRule = {}
 FiveSecondRuleTick = {}
 
+function FiveSecondRule:GetLatency() 
+    local down, up, lagHome, lagWorld = GetNetStats();
+    return lagHome
+end
+
 local DEFAULT_BAR_WIDTH = 117
 local DEFAULT_BAR_HEIGHT = 11
 
@@ -16,6 +21,7 @@ local defaults = {
     ["flat"] = false,
     ["showText"] = true,
     ["showSpark"] = true,
+    ["alwaysShowTicks"] = false,
     ["statusBarColor"] = {0,0,1,0.95},
     ["statusBarBackgroundColor"] = {0,0,0,0.55},
     ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
@@ -30,6 +36,7 @@ local updateTimerEverySeconds = 0.05
 local mp5delay = 5
 local mp5Sensitivty = 0.65
 local runningAverageSize = 5
+local rapidRegenLeeway = 500 + FiveSecondRule:GetLatency()
 
 -- LOCALIZED STRINGS
 local SPIRIT_TAP_NAME = "Spirit Tap"
@@ -44,6 +51,7 @@ local gainingMana = false
 local castCounter = 0
 local mp5StartTime = 0
 local manaTickTime = 0
+local rapidRegenStartTime = nil
 
 -- INTERFACE
 local FiveSecondRuleFrame = CreateFrame("Frame") -- Root frame
@@ -324,6 +332,7 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
 end
 
 function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
+
     if (UnitIsDead("player")) then
       statusbar:Hide()
       tickbar:Hide()
@@ -331,82 +340,102 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
     local now = GetTime()
 
+    if (now == nil) then
+        -- time needs to be defined for this to work
+        FiveSecondRule:updatePlayerMana(); 
+        return
+    end
+
+    local rapidRegen = FiveSecondRule:DetectRapidRegen()
+
     local newMana = FiveSecondRule:getPlayerMana()
     local fullmana = newMana >= FiveSecondRule:getPlayerManaMax()
     local tickSize = newMana - currentMana
     local validTick = FiveSecondRule:IsValidTick(tickSize)
 
-    if not (now == nil) then -- time needs to be defined for this to work
-        self.sinceLastUpdate = (self.sinceLastUpdate or 0) + sinceLastUpdate;
+    -- Five Second Rule Countdown
+    if (mp5StartTime > 0) then
+        local remaining = (mp5StartTime - now)
 
-        if (self.sinceLastUpdate >= updateTimerEverySeconds) then -- in seconds
-            self.sinceLastUpdate = 0;
+        if (remaining >= 0) then
+            statusbar:Show()
+            statusbar:SetValue(remaining)
 
-            if (mp5StartTime > 0) then
-                local remaining = (mp5StartTime - now)
-
-                if (remaining >= 0) then
-                    statusbar:Show()
-                    statusbar:SetValue(remaining)
-
-                    if (FiveSecondRule_Options.showText == true) then
-                        statusbar.value:SetText(string.format("%.1f", remaining).."s")
-                    else
-                        statusbar.value:SetText("")
-                    end
-
-                    if (FiveSecondRule_Options.showSpark) then
-                        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
-                        statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)   
-                    end
-                else
-                    FiveSecondRule:resetManaGain()
-                end
+            if (FiveSecondRule_Options.showText == true) then
+                statusbar.value:SetText(string.format("%.1f", remaining).."s")
             else
-                FiveSecondRule:resetManaGain()
+                statusbar.value:SetText("")
             end
-        end
 
-        if FiveSecondRule_Options.showTicks then
-            if fullmana then
+            if (FiveSecondRule_Options.showSpark) then
+                local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
+                statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)   
+            end
+        else
+            FiveSecondRule:resetManaGain()
+        end
+    else
+        FiveSecondRule:resetManaGain()
+    end
+
+    -- Mana Ticks
+    if FiveSecondRule_Options.showTicks then
+        if fullmana then
+            if (FiveSecondRule_Options.alwaysShowTicks) then
+                tickbar:Show()
+                FiveSecondRule:ProgressTickBar()
+            else
                 if not FiveSecondRule_Options.unlocked then
                     tickbar:Hide()
                 end
-            else
-                if gainingMana then
-                    if newMana > currentMana then
-
-                        if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
-                            tickSize = tickSize / 2
-                        end
-
-                        FiveSecondRule:TrackTick(tickSize)
-
-                        if (validTick) then
-                            tickbar:Show() 
-                            manaTickTime = now + manaRegenTime
-                        end
+            end
+        else
+            if gainingMana then
+                if newMana > currentMana then
+                    if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
+                        tickSize = tickSize / 2
                     end
 
-                    local val = manaTickTime - now
-                    tickbar:SetValue(manaRegenTime - val)
+                    FiveSecondRule:TrackTick(tickSize)
 
-                    if (FiveSecondRule_Options.showText == true) then
-                        tickbar.value:SetText(string.format("%.1f", val).."s")
-                    else
-                        tickbar.value:SetText("")
-                    end
-
-                    if (FiveSecondRule_Options.showSpark) then
-                        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime)), FiveSecondRule_Options.barWidth)
-                        tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", positionLeft-2, 0)      
+                    if validTick then
+                        manaTickTime = now + manaRegenTime
                     end
                 end
+                FiveSecondRule:ProgressTickBar()
+            else
+                tickbar:Hide()
             end
         end
     end
 
+    if gainingMana and validTick then
+        tickbar:Show()
+    end
+
     FiveSecondRule:updatePlayerMana()
+end
+
+function FiveSecondRule:ProgressTickBar() 
+    local now = GetTime()
+
+    if (now >= manaTickTime) then
+        manaTickTime = now + manaRegenTime
+    end
+
+    local val = manaTickTime - now
+    tickbar:SetValue(manaRegenTime - val)
+
+    if (FiveSecondRule_Options.showText == true) then
+        tickbar.value:SetText(string.format("%.1f", val).."s")
+    else
+        tickbar.value:SetText("")
+    end
+
+    if (FiveSecondRule_Options.showSpark) then
+        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime)), FiveSecondRule_Options.barWidth)
+        tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", positionLeft-2, 0)      
+    end
 end
 
 -- HELPER FUNCTIONS
@@ -434,6 +463,7 @@ end
 function FiveSecondRule:resetManaGain()
     gainingMana = true
     mp5StartTime = 0
+    rapidRegenStartTime = nil
 
     if not FiveSecondRule_Options.unlocked then
         statusbar:Hide()
@@ -511,6 +541,29 @@ function FiveSecondRule:PlayerHasDebuff(nameString)
       return false, nil
 end
 
+function FiveSecondRule:DetectRapidRegen()
+    local now = GetTime()
+
+    local isDrinking = FiveSecondRule:PlayerHasBuff(DRINK_NAME)
+    local hasInervate = FiveSecondRule:PlayerHasBuff(INNERVATE_NAME)
+
+    if (isDrinking or hasInervate) then
+        if (not rapidRegenStartTime) then
+            rapidRegenStartTime = now
+        end
+    else
+        if rapidRegenStartTime and (now >= (rapidRegenStartTime + rapidRegenLeeway)) then
+            rapidRegenStartTime = nil
+        end
+    end
+
+    return FiveSecondRule:IsRapidRegening()
+end
+
+function FiveSecondRule:IsRapidRegening()
+    return rapidRegenStartTime and (rapidRegenStartTime + rapidRegenLeeway) >= GetTime()
+end
+
 function FiveSecondRule:IsValidTick(tick) 
     if (tick == nil or tick == 0) then
         return false
@@ -523,16 +576,26 @@ function FiveSecondRule:IsValidTick(tick)
         high = high + 30
     end
 
+    if (tick >= high) then
+        local isDrinking = FiveSecondRule:PlayerHasBuff(DRINK_NAME)
+        local hasInervate = FiveSecondRule:PlayerHasBuff(INNERVATE_NAME)
+        local rapidRegen = FiveSecondRule:IsRapidRegening()
+
+        return rapidRegen or hasInervate or isDrinking
+    end
+
     return tick > low
 end
 
 
 function FiveSecondRule:TrackTick(tick)    
+    local now = GetTime()
 
     local isDrinking = FiveSecondRule:PlayerHasBuff(DRINK_NAME)
     local hasInervate = FiveSecondRule:PlayerHasBuff(INNERVATE_NAME)
+    local rapidRegen = rapidRegenStartTime and (rapidRegenStartTime + rapidRegenLeeway) >= now
 
-    if (isDrinking or hasInervate) then
+    if (isDrinking or hasInervate or rapidRegen) then
         return
     end
 
