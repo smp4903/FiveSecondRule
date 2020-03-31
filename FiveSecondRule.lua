@@ -31,7 +31,7 @@ local defaults = {
 }
 
 -- CONSTANTS
-local manaRegenTime = 2
+local powerRegenTime = 2
 local updateTimerEverySeconds = 0.05
 local mp5delay = 5
 local mp5Sensitivty = 0.65
@@ -47,6 +47,7 @@ local INNERVATE_NAME = "Innervate"
 local DRINK_NAME = "Drink"
 
 -- STATE VARIABLES
+local isManaUser = true
 local gainingMana = false
 local castCounter = 0
 local mp5StartTime = 0
@@ -75,6 +76,8 @@ function FiveSecondRule:Init()
     -- Initialize FiveSecondRule_Options
     FiveSecondRule:LoadOptions()
     FiveSecondRule_Options.unlocked = false
+
+    isManaUser = UnitPowerType("player") == 0
 
     -- LOCALIZATION
     FiveSecondRule:LoadSpells()
@@ -294,35 +297,37 @@ function FiveSecondRule:onEvent(self, event, arg1, ...)
     end
 
     if event == "PLAYER_ENTERING_WORLD" then
-        FiveSecondRule:updatePlayerMana()
+        FiveSecondRule:updatePlayerPower()
     end
 
     if event == "CURRENT_SPELL_CAST_CHANGED"  then
         castCounter = castCounter + 1
 
         if (castCounter == 1) then
-             FiveSecondRule:updatePlayerMana()
+             FiveSecondRule:updatePlayerPower()
         elseif (castCounter == 2) then
-            FiveSecondRule:updatePlayerMana()
+            FiveSecondRule:updatePlayerPower()
         else
             castCounter = 0
         end
     end
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        if FiveSecondRule:getPlayerMana() < currentMana then
-            gainingMana = false
+        if FiveSecondRule:getPlayerPower() < currentMana then
+            if isManaUser then 
+                gainingMana = false
 
-            FiveSecondRule:updatePlayerMana()
-            mp5StartTime = GetTime() + 5
+                FiveSecondRule:updatePlayerPower()
+                mp5StartTime = GetTime() + 5
 
-            tickbar:Hide()
-            statusbar:Show()
+                tickbar:Hide()
+                statusbar:Show()
+            end
         end
     end
 
     if event == "PLAYER_EQUIPMENT_CHANGED" then
-        FiveSecondRule:updatePlayerMana()
+        FiveSecondRule:updatePlayerPower()
         FiveSecondRule:ResetRunningAverage()
     end
 
@@ -342,15 +347,15 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
     if (now == nil) then
         -- time needs to be defined for this to work
-        FiveSecondRule:updatePlayerMana(); 
+        FiveSecondRule:updatePlayerPower(); 
         return
     end
 
     local rapidRegen = FiveSecondRule:DetectRapidRegen()
 
-    local newMana = FiveSecondRule:getPlayerMana()
-    local fullmana = newMana >= FiveSecondRule:getPlayerManaMax()
-    local tickSize = newMana - currentMana
+    local newPower = FiveSecondRule:getPlayerPower()
+    local hasFullPower = newPower >= FiveSecondRule:getPlayerPowerMax()
+    local tickSize = newPower - currentMana
     local validTick = FiveSecondRule:IsValidTick(tickSize)
 
     -- Five Second Rule Countdown
@@ -380,7 +385,7 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
 
     -- Mana Ticks
     if FiveSecondRule_Options.showTicks then
-        if fullmana then
+        if hasFullPower then
             if (FiveSecondRule_Options.alwaysShowTicks) then
                 tickbar:Show()
                 FiveSecondRule:ProgressTickBar()
@@ -391,7 +396,7 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
             end
         else
             if gainingMana then
-                if newMana > currentMana then
+                if newPower > currentMana then
                     if (FiveSecondRule:PlayerHasBuff(SPIRIT_TAP_NAME)) then
                         tickSize = tickSize / 2
                     end
@@ -399,7 +404,7 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
                     FiveSecondRule:TrackTick(tickSize)
 
                     if validTick then
-                        manaTickTime = now + manaRegenTime
+                        manaTickTime = now + powerRegenTime
                     end
                 end
                 FiveSecondRule:ProgressTickBar()
@@ -413,18 +418,18 @@ function FiveSecondRuleFrame:onUpdate(sinceLastUpdate)
         tickbar:Show()
     end
 
-    FiveSecondRule:updatePlayerMana()
+    FiveSecondRule:updatePlayerPower()
 end
 
 function FiveSecondRule:ProgressTickBar() 
     local now = GetTime()
 
     if (now >= manaTickTime) then
-        manaTickTime = now + manaRegenTime
+        manaTickTime = now + powerRegenTime
     end
 
     local val = manaTickTime - now
-    tickbar:SetValue(manaRegenTime - val)
+    tickbar:SetValue(powerRegenTime - val)
 
     if (FiveSecondRule_Options.showText == true) then
         tickbar.value:SetText(string.format("%.1f", val).."s")
@@ -433,7 +438,7 @@ function FiveSecondRule:ProgressTickBar()
     end
 
     if (FiveSecondRule_Options.showSpark) then
-        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/manaRegenTime)), FiveSecondRule_Options.barWidth)
+        local positionLeft = math.min(FiveSecondRule_Options.barWidth * (1 - (val/powerRegenTime)), FiveSecondRule_Options.barWidth)
         tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", positionLeft-2, 0)      
     end
 end
@@ -456,8 +461,8 @@ function FiveSecondRule:SetDefaultFont(target)
     target.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
 end
 
-function FiveSecondRule:updatePlayerMana()
-    currentMana = FiveSecondRule:getPlayerMana()
+function FiveSecondRule:updatePlayerPower()
+    currentMana = FiveSecondRule:getPlayerPower()
 end
 
 function FiveSecondRule:resetManaGain()
@@ -470,12 +475,12 @@ function FiveSecondRule:resetManaGain()
     end
 end
 
-function FiveSecondRule:getPlayerMana()
-    return UnitPower("player" , 0); -- 0 is mana
+function FiveSecondRule:getPlayerPower()
+    return UnitPower("player"); -- 0 is mana, 3 is energy
 end
 
-function FiveSecondRule:getPlayerManaMax()
-    return UnitPowerMax("player", 0) -- 0 is mana
+function FiveSecondRule:getPlayerPowerMax()
+    return UnitPowerMax("player") -- 0 is mana, 3 is energy
 end
 
 function FiveSecondRule:unlock()

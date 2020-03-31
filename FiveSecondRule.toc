@@ -1,9 +1,9 @@
-## Interface: 11302
+## Interface: 11304
 ## Title: Five Second Rule 
 ## Notes: Track the so-called "5-second-rule" (5SR or FSR), which refers to the time needed to elapse after spending mana, for mana regen to resume. Notable, this rule excludes "mp5"-gear.
-## Version: 1.16
+## Version: 1.17
 ## DefaultState: enabled
-## Author: Stefan Michael Pedersen (stefanmp91@gmail.com)
+## Author: CassiniEU @ Twitch.com
 ## SavedVariablesPerCharacter: FiveSecondRule_Options
 
 FiveSecondRule.lua
