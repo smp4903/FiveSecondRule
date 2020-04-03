@@ -102,7 +102,7 @@ function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
     ColorPickerFrame.func = changedCallback
 
     ColorPickerFrame:SetScript("OnShow", function () 
-        FiveSecondRule:unlock();
+        FiveSecondRule:Unlock();
 
         -- Add callbacks when the color picker is shown, since they might have been removed from previous use
         ColorPickerFrame.cancelFunc = changedCallback
@@ -110,7 +110,7 @@ function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
     end)
 
     ColorPickerFrame:SetScript("OnHide", function () 
-        FiveSecondRule:lock();
+        FiveSecondRule:Lock();
 
         -- Remove callbacks to avoid leaking callbacks when using multiple color pickers
         ColorPickerFrame.cancelFunc = nil
@@ -132,4 +132,21 @@ function FiveSecondRule.UIFactory:UnpackColor(restore)
     end
 
     return {newR, newG, newB, newA}
+end
+
+function FiveSecondRule.UIFactory:SetDefaultFont(target)
+    local height = target:GetHeight()
+    local remainder = AddonUtils:modulus(height, 2)
+    local px = height - remainder
+
+    px = math.min(px, 20)
+    px = math.max(px, 1)
+
+    if (px < 8) then
+        target.value:SetTextColor(0, 0, 0, 0)
+    else
+        target.value:SetTextColor(0.95, 0.95, 0.95)
+    end
+
+    target.value:SetFont("Fonts\\FRIZQT__.TTF", px, "OUTLINE")
 end

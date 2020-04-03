@@ -56,7 +56,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     local mtbgc = FiveSecondRule_Options.manaTicksBackgroundColor
     frame.content.manaTicksBackgroundColorFrame:SetBackdropColor(mtbgc[1], mtbgc[2], mtbgc[3], mtbgc[4])
 
-    FiveSecondRule:Update()
+    FiveSecondRule:Refresh()
 end
 
 -- GUI
@@ -106,7 +106,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         flat:SetPoint("TOPLEFT", 10, -60)
         flat:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.flat = self:GetChecked()
-            FiveSecondRule:Update()
+            FiveSecondRule:Refresh()
         end)
         frame.content.flat = flat
     end
@@ -118,7 +118,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         showText:SetPoint("TOPLEFT", 10, -90)
         showText:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.showText = self:GetChecked()
-            FiveSecondRule:Update()
+            FiveSecondRule:Refresh()
         end)
         frame.content.showText = showText
     end
@@ -130,7 +130,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         showSpark:SetPoint("TOPLEFT", 10, -120)
         showSpark:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.showSpark = self:GetChecked()
-            FiveSecondRule:Update()
+            FiveSecondRule:Refresh()
         end)
         frame.content.showSpark = showSpark        
     end   
@@ -142,7 +142,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         alwaysShowTicks:SetPoint("TOPLEFT", 10, -150)
         alwaysShowTicks:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.alwaysShowTicks = self:GetChecked()
-            FiveSecondRule:Update()
+            FiveSecondRule:Refresh()
         end)
         frame.content.alwaysShowTicks = alwaysShowTicks        
     end     
@@ -150,7 +150,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- BAR
     local barWidth = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
         FiveSecondRule_Options.barWidth = tonumber(self:GetText())
-        FiveSecondRule:Update()
+        FiveSecondRule:Refresh()
     end)
     barWidth:SetPoint("TOPLEFT", 250, -30)
     barWidth:SetCursorPosition(0)
@@ -158,7 +158,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     local barHeight = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."CountdownHeight", frame.content, "Height", 75, 25, function(self)
         FiveSecondRule_Options.barHeight = tonumber(self:GetText())
-        FiveSecondRule:Update()
+        FiveSecondRule:Refresh()
     end)
     barHeight:SetPoint("TOPLEFT", 400, -30)
     barHeight:SetCursorPosition(0)
@@ -167,10 +167,10 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- LOCK / UNLOCK BUTTON
     local function lockToggled(self)
         if (FiveSecondRule_Options.unlocked) then
-            FiveSecondRule:lock()
+            FiveSecondRule:Lock()
             self:SetText("Unlock")
         else
-            FiveSecondRule:unlock()
+            FiveSecondRule:Unlock()
             self:SetText("Lock")
         end
     end
@@ -188,7 +188,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             lockToggled(toggleLock)
         end
 
-        FiveSecondRule:reset()
+        FiveSecondRule:Reset()
         OptionsPanelFrame:UpdateOptionValues(frame.content)
     end)
     resetButton:SetPoint("TOPRIGHT", -5, 0)
@@ -197,7 +197,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- BAR LEFT
     local barLeft = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."BarLeft", frame.content, "X (from left)", 75, 25, function(self)
         FiveSecondRule_Options.barLeft = tonumber(self:GetText())
-        FiveSecondRule:Update()
+        FiveSecondRule:Refresh()
     end)
     barLeft:SetPoint("TOPLEFT", 250, -90)
     barLeft:SetCursorPosition(0)
@@ -206,7 +206,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- BAR TOP
     local barTop = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."BarTop", frame.content, "Y (from top)", 75, 25, function(self)
         FiveSecondRule_Options.barTop = tonumber(self:GetText())
-        FiveSecondRule:Update()
+        FiveSecondRule:Refresh()
     end)
     barTop:SetPoint("TOPLEFT", 400, -90)
     barTop:SetCursorPosition(0)

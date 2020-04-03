@@ -11,5 +11,8 @@ FiveSecondRule.lua
 Modules\SlashCommands.lua
 Modules\OptionsPanel.lua
 
+Modules\TickBar.lua
+Modules\StatusBar.lua
+
 Dependencies\UIFactory.lua
 Dependencies\AddonUtils.lua
