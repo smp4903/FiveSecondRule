@@ -101,34 +101,40 @@ do -- private scope
     end
 
     function OnUpdate()
-        local now = GetTime()
-        local power = UnitPower("player")
-        local tickSize = power - FiveSecondRule.previousPower
+            local now = GetTime()
+            local power = UnitPower("player")
+            local tickSize = power - FiveSecondRule.previousPower
 
-        -- Five Second Rule Countdown
-        if (FiveSecondRule.mp5StartTime > 0) then
-            local remaining = (FiveSecondRule.mp5StartTime - now)
+            -- Five Second Rule Countdown
+            if (FiveSecondRule.mp5StartTime > 0) then
+                local remaining = (FiveSecondRule.mp5StartTime - now)
 
-            if (remaining >= 0) then
-                statusbar:Show()
-                statusbar:SetValue(remaining)
+                if (remaining >= 0) then
+                    if FiveSecondRule_Options.enableCountdown then
+                        statusbar:Show()
+                        statusbar:SetValue(remaining)
 
-                if (FiveSecondRule_Options.showText == true) then
-                    statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                        if (FiveSecondRule_Options.showText == true) then
+                            statusbar.value:SetText(string.format("%.1f", remaining).."s")
+                        else
+                            statusbar.value:SetText("")
+                        end
+
+
+                        if (FiveSecondRule_Options.showSpark) then
+                            local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
+                            statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)   
+                        end
+                    else
+                        statusbar:Hide()
+                    end
                 else
-                    statusbar.value:SetText("")
-                end
-
-                if (FiveSecondRule_Options.showSpark) then
-                    local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)
-                    statusbar.bg.spark:SetPoint("CENTER", statusbar.bg, "LEFT", positionLeft, 0)   
+                    resetManaGain()
                 end
             else
                 resetManaGain()
             end
-        else
-            resetManaGain()
-        end
+       
     end
 
     function onMouseDown(button)

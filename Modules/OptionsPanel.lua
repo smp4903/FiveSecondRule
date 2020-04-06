@@ -37,6 +37,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
     frame.content.showSpark:SetChecked(FiveSecondRule_Options.showSpark == true)
     frame.content.alwaysShowTicks:SetChecked(FiveSecondRule_Options.alwaysShowTicks == true)
+    frame.content.enableCountdown:SetChecked(FiveSecondRule_Options.enableCountdown == true)
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -145,6 +146,18 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule:Refresh()
         end)
         frame.content.alwaysShowTicks = alwaysShowTicks        
+    end  
+
+    -- ENABLE COUNTDOWN?
+    if (not frame.content.enableCountdown) then
+        local enableCountdown = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."enableCountdown", frame.content, "Check to show the Five Second Rule countdown")
+        enableCountdown.label:SetText("Enable FSR countdown")
+        enableCountdown:SetPoint("TOPLEFT", 10, -180)
+        enableCountdown:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.enableCountdown = self:GetChecked()
+            FiveSecondRule:Refresh()
+        end)
+        frame.content.enableCountdown = enableCountdown        
     end     
 
     -- BAR
@@ -214,12 +227,12 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- STATUSBAR STYLE TITLE
     frame.content.statusBarTitle = FiveSecondRule.UIFactory:MakeText(frame.content, "Statusbar Style", 16)
-    frame.content.statusBarTitle:SetPoint("TOPLEFT", 12, -180)
+    frame.content.statusBarTitle:SetPoint("TOPLEFT", 12, -240)
 
     -- STATUSBAR COLOR PICKER
     if (not frame.content.statusBarForegroundColorFrame) then
         frame.content.statusBarForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."StatusBarColorFrame", frame.content, "Foreground", FiveSecondRule_Options.statusBarColor)
-        frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -220)
+        frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -270)
         frame.content.statusBarForegroundColorFrame:SetScript("OnMouseDown",  
             function (self, button)
                 colorPickerStateSet = false
@@ -242,7 +255,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- STATUSBAR BACKGROUND COLOR PICKER
     if (not frame.content.statusBarBackgroundColorFrame) then
         frame.content.statusBarBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."StatusBarBackgroundColorFrame",  frame.content, "Background", FiveSecondRule_Options.statusBarBackgroundColor)
-        frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -220)
+        frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -270)
         frame.content.statusBarBackgroundColorFrame:SetScript("OnMouseDown",  
             function (self, button)
                 colorPickerStateSet = false
@@ -264,12 +277,12 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- MANA TICKS BAR STYLE TITLE
     frame.content.manaTicksTitle = FiveSecondRule.UIFactory:MakeText(frame.content, "Mana Ticks Style", 16)
-    frame.content.manaTicksTitle:SetPoint("TOPLEFT", 12, -250)
+    frame.content.manaTicksTitle:SetPoint("TOPLEFT", 12, -300)
 
     -- MANA TICKS BAR COLOR PICKER
     if (not frame.content.manaTicksForegroundColorFrame) then
         frame.content.manaTicksForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."ManaTicksColorFrame",  frame.content, "Foreground", FiveSecondRule_Options.manaTicksColor)
-        frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -320)
+        frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -330)
         frame.content.manaTicksForegroundColorFrame:SetScript("OnMouseDown",  
             function (self, button)
                 colorPickerStateSet = false
@@ -292,7 +305,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     -- MANA TICKS BAR BACKGROUND COLOR PICKER
     if (not frame.content.manaTicksBackgroundColorFrame) then
         frame.content.manaTicksBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."ManaTicksBackgroundColorFrame", frame.content, "Background",  FiveSecondRule_Options.manaTicksBackgroundColor)
-        frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -320)
+        frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -330)
         frame.content.manaTicksBackgroundColorFrame:SetScript("OnMouseDown",  
             function (self, button)
                 colorPickerStateSet = false
