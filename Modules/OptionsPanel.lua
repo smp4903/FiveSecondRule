@@ -3,7 +3,7 @@ local ADDON_NAME = "FiveSecondRule"
 local NAMESPACE = FiveSecondRule
 
 -- STATE
-local frame = nil
+local frame = CreateFrame("Frame", nil, InterfaceOptionsFrame)
 local colorPickerStateSet = false
 
 -- LOADER
@@ -32,6 +32,10 @@ OptionsPanelFrame:SetScript("OnEvent",
 -- LOADING VALUES
 
 function OptionsPanelFrame:UpdateOptionValues()
+    if frame == nil or frame.content == nil then
+        return
+    end
+    
     frame.content.ticks:SetChecked(FiveSecondRule_Options.showTicks == true)
     frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
     frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
