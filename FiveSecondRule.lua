@@ -1,11 +1,10 @@
 -- NAMESPACE / CLASS: FiveSecondRule   
 -- OPTIONS: FiveSecondRule_Options      
 
-local ADDON_NAME = "FiveSecondRule"
-
 FiveSecondRule = CreateFrame("Frame")
 
 do -- Private Scope
+    local ADDON_NAME = "FiveSecondRule"
 
     local defaults = {
         ["unlocked"] = false,
