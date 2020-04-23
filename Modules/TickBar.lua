@@ -16,6 +16,7 @@ do -- private scope
     local GREATER_BLESSING_OF_WISDOM_NAME = "Greater Blessing of Wisdom"
     local INNERVATE_NAME = "Innervate"
     local DRINK_NAME = "Drink"
+    local EVOCATION_NAME = "Evocation"
 
     function LoadSpells()
         SPIRIT_TAP_NAME = SpellIdToName(15338)
@@ -24,6 +25,7 @@ do -- private scope
         GREATER_BLESSING_OF_WISDOM_NAME = SpellIdToName(25918) -- Rank doesnt matter
         INNERVATE_NAME = SpellIdToName(29166)
         DRINK_NAME = SpellIdToName(1135)
+        EVOCATION_NAME = SpellIdToName(12051)
     end
 
     function Refresh()
@@ -197,11 +199,11 @@ do -- private scope
         end
 
         if (tick >= high) then
-            local isDrinking = PlayerHasBuff(DRINK_NAME)
-            local hasInervate = PlayerHasBuff(INNERVATE_NAME)
+            --local isDrinking = PlayerHasBuff(DRINK_NAME)
+            --local hasInervate = PlayerHasBuff(INNERVATE_NAME)
             local rapidRegen = IsRapidRegening()
 
-            return rapidRegen or hasInervate or isDrinking
+            return rapidRegen -- or hasInervate or isDrinking
         end
 
         return tick > low
@@ -212,6 +214,7 @@ do -- private scope
 
         local isDrinking = PlayerHasBuff(DRINK_NAME)
         local hasInervate = PlayerHasBuff(INNERVATE_NAME)
+
         local rapidRegen = FiveSecondRule.rapidRegenStartTime and (FiveSecondRule.rapidRegenStartTime + rapidRegenLeeway) >= now
 
         if (isDrinking or hasInervate or rapidRegen) then
@@ -271,8 +274,9 @@ do -- private scope
 
         local isDrinking = PlayerHasBuff(DRINK_NAME)
         local hasInervate = PlayerHasBuff(INNERVATE_NAME)
+        local hasEvocation = PlayerHasBuff(EVOCATION_NAME)
 
-        if (isDrinking or hasInervate) then
+        if (isDrinking or hasInervate or hasEvocation) then
             if (not FiveSecondRule.rapidRegenStartTime) then
                 FiveSecondRule.rapidRegenStartTime = now
             end
