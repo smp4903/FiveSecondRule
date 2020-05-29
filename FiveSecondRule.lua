@@ -7,6 +7,7 @@ do -- Private Scope
     local ADDON_NAME = "FiveSecondRule"
 
     local defaults = {
+        ["enabled"] = true,
         ["unlocked"] = false,
         ["showTicks"] = true,
         ["barWidth"] = 117,
@@ -44,10 +45,9 @@ do -- Private Scope
 
     -- INITIALIZATION
     function Init()  
-        TickBar:LoadSpells() -- LOCALIZATION
         LoadOptions()
-        FiveSecondRule_Options.unlocked = false
 
+        TickBar:LoadSpells() -- LOCALIZATION
         FiveSecondRule:Refresh()
     end
 
@@ -59,6 +59,8 @@ do -- Private Scope
                 FiveSecondRule_Options[key] = value
             end
         end
+
+        FiveSecondRule_Options.unlocked = false
     end
 
     function onEvent(self, event, arg1, ...)
@@ -71,6 +73,10 @@ do -- Private Scope
 
         if event == "PLAYER_ENTERING_WORLD" then
             savePlayerPower()
+        end
+
+        if not FiveSecondRule_Options.enabled then
+            return
         end
 
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
@@ -99,7 +105,7 @@ do -- Private Scope
     end
 
     function onUpdate(sinceLastUpdate)
-        if UnitIsDead("player") or (not IsValidClass()) then
+        if (not FiveSecondRule_Options.enabled) or UnitIsDead("player") then
             StatusBar.statusbar:Hide()
             TickBar.tickbar:Hide()
             return
@@ -157,11 +163,6 @@ do -- Private Scope
     function PrintHelp()
         local colorHex = "2979ff"
         print("|cff"..colorHex.."FiveSecondRule loaded - /fsr")
-    end
-
-    function IsValidClass()
-        local localizedClass, englishClass, classIndex = UnitClass("player")
-        return classIndex > 1 -- 1 is warrior, the rest have energy or mana
     end
 
     -- Expose Field Variables and Functions
