@@ -247,14 +247,14 @@ do -- private scope
 
     function PlayerHasBuff(nameString)
         for i=1,40 do
-            local name, _, _, _, _, expirationTime = UnitBuff("player",i)
+            local name, _, _, _, _, expirationTime, _, _, _, spellId = UnitBuff("player",i)
             if name then
                 if name == nameString then
-                    return true, expirationTime
+                    return true, expirationTime, FSR_STATS.GetSpellRank(spellId)
                 end
             end
         end
-        return false, nil
+        return false, nil, nil
     end
 
     function PlayerHasDebuff(nameString)
