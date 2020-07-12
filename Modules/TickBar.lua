@@ -199,11 +199,7 @@ do -- private scope
         end
 
         if (tick >= high) then
-            --local isDrinking = PlayerHasBuff(DRINK_NAME)
-            --local hasInervate = PlayerHasBuff(INNERVATE_NAME)
-            local rapidRegen = IsRapidRegening()
-
-            return rapidRegen -- or hasInervate or isDrinking
+            return IsRapidRegening()
         end
 
         return tick > low
