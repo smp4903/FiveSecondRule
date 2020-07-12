@@ -11,6 +11,7 @@ FiveSecondRule.lua
 Modules\SlashCommands.lua
 Modules\OptionsPanel.lua
 
+Modules\Stats.lua
 Modules\TickBar.lua
 Modules\StatusBar.lua
 
