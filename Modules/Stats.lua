@@ -137,7 +137,11 @@ do -- private scope
     end
 
     local function GetSpellRank(spellId)
-        return string.sub(GetSpellSubtext(spellId), -1)
+        local str = GetSpellSubtext(spellId)
+        if str then
+            return string.sub(str, -1)
+        end
+        return 1
     end
 
     local function GetBlessingOfWisdomBonus()
