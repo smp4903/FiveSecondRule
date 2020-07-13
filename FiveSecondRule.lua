@@ -64,6 +64,12 @@ do -- Private Scope
     end
 
     function onEvent(self, event, arg1, ...)
+        if (select(2, UnitClass("player")) == "WARRIOR") then
+            -- Disable the addon for warriors, since there is no reliable power or life to track in order to show power ticks.
+            FiveSecondRule:SetScript("OnUpdate", nil)
+            return
+        end
+
         if event == "ADDON_LOADED" then
             if arg1 == ADDON_NAME then
                 Init()
