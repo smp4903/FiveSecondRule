@@ -80,8 +80,10 @@ do -- Private Scope
         end
 
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
-            if UnitPower("player") < FiveSecondRule.previousPower then
-                if UnitPowerType("player") == 0 then -- 0 is mana
+            if GetPower() < FiveSecondRule.previousPower then
+                -- Only show the FSR for classes using mana
+                -- Subsequently, this also means that the tick bar won't be hidden for classes not using mana (rogue)
+                if (FiveSecondRule.GetPowerType() == 0) then
                     FiveSecondRule.gainingMana = false
 
                     savePlayerPower()
@@ -123,8 +125,24 @@ do -- Private Scope
         savePlayerPower()
     end
 
+    function GetPower()
+        return UnitPower("player", GetPowerType())
+    end
+
+    function GetPowerMax()
+        return UnitPowerMax("player", GetPowerType())
+    end
+
+    function GetPowerType()
+        if select(2, UnitClass("player")) == "ROGUE" then
+            return 3
+        else 
+            return 0
+        end
+    end
+
     function savePlayerPower()
-        FiveSecondRule.previousPower = UnitPower("player")
+        FiveSecondRule.previousPower = GetPower()
     end
 
     function SpellIdToName(id)
@@ -171,6 +189,9 @@ do -- Private Scope
     FiveSecondRule.Reset = Reset
     FiveSecondRule.PrintHelp = PrintHelp
     FiveSecondRule.Refresh = Refresh
+    FiveSecondRule.GetPower = GetPower
+    FiveSecondRule.GetPowerMax = GetPowerMax
+    FiveSecondRule.GetPowerType = GetPowerType
     
 end
 

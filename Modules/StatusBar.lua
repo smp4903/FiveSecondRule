@@ -102,7 +102,7 @@ do -- private scope
 
     function OnUpdate()
             local now = GetTime()
-            local power = UnitPower("player")
+            local power = FiveSecondRule.GetPower()
             local tickSize = power - FiveSecondRule.previousPower
 
             -- Five Second Rule Countdown
@@ -119,7 +119,6 @@ do -- private scope
                         else
                             statusbar.value:SetText("")
                         end
-
 
                         if (FiveSecondRule_Options.showSpark) then
                             local positionLeft = math.min(FiveSecondRule_Options.barWidth * (remaining/mp5delay), FiveSecondRule_Options.barWidth)

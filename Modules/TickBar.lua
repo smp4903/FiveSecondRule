@@ -119,8 +119,8 @@ do -- private scope
 
             rapidRegenLeeway = 500 + GetLatency()
 
-            local power = UnitPower("player")
-            local powerMax = UnitPowerMax("player")
+            local power = FiveSecondRule.GetPower()
+            local powerMax = FiveSecondRule.GetPowerMax()
             local hasFullPower = power >= powerMax
             local tickSize = power - FiveSecondRule.previousPower
             local validTick = IsValidTick(tickSize)
