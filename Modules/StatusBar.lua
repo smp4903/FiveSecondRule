@@ -102,8 +102,6 @@ do -- private scope
 
     function OnUpdate()
             local now = GetTime()
-            local power = FiveSecondRule.GetPower()
-            local tickSize = power - FiveSecondRule.previousPower
 
             -- Five Second Rule Countdown
             if (FiveSecondRule.mp5StartTime > 0) then
