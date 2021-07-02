@@ -6,7 +6,7 @@ do -- private scope
     local tickbar = CreateFrame("StatusBar", "Five Second Rule Statusbar - Mana Ticks", UIParent) -- StatusBar for tracking mana ticks after 5SR is fulfilled
     local manaTickTime = 0
     local powerRegenTime = 2
-    local mp5Sensitivty = 0.65
+    local mp5Sensitivty = 0.80
     local runningAverageSize = 5
     local rapidRegenLeeway = 500
 
@@ -191,11 +191,20 @@ do -- private scope
             return false
         end
 
-        local low = FiveSecondRule_Options.averageManaTick * mp5Sensitivty
-        local high = FiveSecondRule_Options.averageManaTick * (1 + (1 - mp5Sensitivty))
+        local mid = FSR_STATS.MP2FromSpirit() -- FiveSecondRule_Options.averageManaTick
+        if (mid <= 0) then
+            mid = FiveSecondRule_Options.averageManaTick
+        end
+
+        local low = mid * mp5Sensitivty
+        local high = mid * (1 + (1 - mp5Sensitivty))
         
         if (PlayerHasBuff(BLESSING_OF_WISDOM_NAME) or PlayerHasBuff(GREATER_BLESSING_OF_WISDOM_NAME)) then
             high = high + 30
+        end
+
+        if (tick <= low and tick >= FiveSecondRule.GetPowerMax() - FiveSecondRule.GetPower()) then
+            return true -- last tick
         end
 
         if (tick >= high) then

@@ -50,6 +50,15 @@ do -- private scope
         return Round(base, 0) * 5
     end
 
+    local function MP2FromSpirit()
+        local base, _ = GetManaRegen() -- Returns mana reg per 1 second
+        if base < 1 then
+            base = lastManaReg
+        end
+        lastManaReg = base
+        return Round(base, 0) * 2
+    end
+
     local function GetTalentModifierMP5()
         local _, _, classId = UnitClass("player")
         local mod = 0
@@ -163,6 +172,7 @@ do -- private scope
     -- Expose Field Variables and Functions
     FSR_STATS.MP5FromItems = MP5FromItems
     FSR_STATS.MP5FromSpirit = MP5FromSpirit
+    FSR_STATS.MP2FromSpirit = MP2FromSpirit
     FSR_STATS.MP5WhileCasting = MP5WhileCasting
     FSR_STATS.MP5FromBuffs = MP5FromBuffs
     FSR_STATS.GetSpellRank = GetSpellRank
