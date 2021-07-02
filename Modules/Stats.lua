@@ -154,16 +154,27 @@ do -- private scope
     end
 
     local function GetBlessingOfWisdomBonus()
-        local bow, bowExp, bowRank = PlayerHasBuff(GREATER_BLESSING_OF_WISDOM_NAME)
+        -- DOES NOT INCLUDE MODIFIER TALENTS (rank 1 = 10%, rank 2 = 20%)
+        local bow, bowExp, bowRank = PlayerHasBuff(SpellIdToName(25918))
+        local rank = tonumber(bowRank)
 
         if bow then
-            return 27 + bowRank * 3
+            if rank < 3 then
+                return 27 + rank * 3
+            else
+                return 27 + rank * 3 + 5
+            end
         end
 
-        bow, bowExp, bowRank = PlayerHasBuff(BLESSING_OF_WISDOM_NAME)
+        bow, bowExp, bowRank = PlayerHasBuff(SpellIdToName(19854))
+        rank = tonumber(bowRank)
 
         if bow then
-            return  5 + bowRank * 5 
+            if rank < 6 then
+                return 5 + rank * 5
+            else
+                return 25 + (rank-5) * 8 -- Rank 6 = 33, Rank 7 = 41
+            end
         end
 
         return 0

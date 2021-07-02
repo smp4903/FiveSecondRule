@@ -198,10 +198,7 @@ do -- private scope
 
         local low = mid * mp5Sensitivty
         local high = mid * (1 + (1 - mp5Sensitivty))
-        
-        if (PlayerHasBuff(BLESSING_OF_WISDOM_NAME) or PlayerHasBuff(GREATER_BLESSING_OF_WISDOM_NAME)) then
-            high = high + 30
-        end
+        high = high + FSR_STATS.GetBlessingOfWisdomBonus()
 
         if (tick <= low and tick >= FiveSecondRule.GetPowerMax() - FiveSecondRule.GetPower()) then
             return true -- last tick
