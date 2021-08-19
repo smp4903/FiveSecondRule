@@ -26,7 +26,7 @@ function FiveSecondRule.UIFactory:MakeText(parent, text, size)
 end
 
 function FiveSecondRule.UIFactory:MakeEditBox(name, parent, title, w, h, enter_func)
-    local edit_box_obj = CreateFrame("EditBox", name, parent)
+    local edit_box_obj = CreateFrame("EditBox", name, parent, BackdropTemplateMixin and "BackdropTemplate")
     edit_box_obj.title_text = FiveSecondRule.UIFactory:MakeText(edit_box_obj, title, 12)
     edit_box_obj.title_text:SetPoint("TOP", 0, 12)
     edit_box_obj:SetBackdrop({
@@ -68,7 +68,7 @@ function FiveSecondRule.UIFactory:MakeColor(r,g,b,a)
 end
 
 function FiveSecondRule.UIFactory:MakeColorPicker(name, parent, title, color, OnShow)
-    local colorPickerFrame = CreateFrame("Frame", name, parent)
+    local colorPickerFrame = CreateFrame("Frame", name, parent, BackdropTemplateMixin and "BackdropTemplate")
     colorPickerFrame.title_text = FiveSecondRule.UIFactory:MakeText(colorPickerFrame, title, 12)
     colorPickerFrame.title_text:SetPoint("TOP", 0, 12)
     colorPickerFrame:SetSize(75, 25)
