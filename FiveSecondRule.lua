@@ -19,6 +19,7 @@ do -- Private Scope
         ["showSpark"] = true,
         ["alwaysShowTicks"] = false,
         ["enableCountdown"] = true,
+        ["forceTrackDruidEnergy"] = false,
         ["statusBarColor"] = {0,0,1,0.95},
         ["statusBarBackgroundColor"] = {0,0,0,0.55},
         ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
@@ -140,7 +141,13 @@ do -- Private Scope
     end
 
     function GetPowerType()
-        if select(2, UnitClass("player")) == "ROGUE" then
+        local class = select(2, UnitClass("player"))
+
+        if class == "DRUID" and FiveSecondRule_Options.forceTrackDruidEnergy then
+            return 3
+        end
+
+        if class == "ROGUE" then
             return 3
         else 
             return 0

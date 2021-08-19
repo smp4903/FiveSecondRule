@@ -42,6 +42,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.showSpark:SetChecked(FiveSecondRule_Options.showSpark == true)
     frame.content.alwaysShowTicks:SetChecked(FiveSecondRule_Options.alwaysShowTicks == true)
     frame.content.enableCountdown:SetChecked(FiveSecondRule_Options.enableCountdown == true)
+    frame.content.forceTrackDruidEnergy:SetChecked(FiveSecondRule_Options.forceTrackDruidEnergy == true)
     
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -163,6 +164,24 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         end)
         frame.content.enableCountdown = enableCountdown        
     end     
+
+    -- FORCE TRACK ENERGY FOR DRUIDS?
+    if (not frame.content.forceTrackDruidEnergy) then
+        local forceTrackDruidEnergy = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."forceTrackDruidEnergy", frame.content, "Check to track druid energy instead of mana")
+        forceTrackDruidEnergy.label:SetText("Force track druid energy")
+        forceTrackDruidEnergy:SetPoint("TOPLEFT", 10, -210)
+        forceTrackDruidEnergy:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.forceTrackDruidEnergy = self:GetChecked()
+            FiveSecondRule:Refresh()
+        end)
+        frame.content.forceTrackDruidEnergy = forceTrackDruidEnergy
+        
+        if (select(2, UnitClass("player")) ~= "DRUID") then 
+            frame.content.forceTrackDruidEnergy:Hide()
+        end
+
+    end     
+    
 
     -- BAR
     local barWidth = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
