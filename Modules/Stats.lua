@@ -148,7 +148,12 @@ do -- private scope
     local function GetSpellRank(spellId)
         local str = GetSpellSubtext(spellId)
         if str then
-            return string.sub(str, -1)
+            local ENClientFormat = string.sub(str, -1) -- Subtext is "Rank 1"
+            if tonumber(ENClientFormat) ~= nil then
+                return tonumber(ENClientFormat)
+            else
+                return tonumber(string.sub(str, 1, 1)) -- RU Client format, subtext is "1-й уровень"
+            end
         end
         return 1
     end
@@ -156,24 +161,22 @@ do -- private scope
     local function GetBlessingOfWisdomBonus()
         -- DOES NOT INCLUDE MODIFIER TALENTS (rank 1 = 10%, rank 2 = 20%)
         local bow, bowExp, bowRank = PlayerHasBuff(SpellIdToName(25918))
-        local rank = tonumber(bowRank)
 
         if bow then
-            if rank < 3 then
-                return 27 + rank * 3
+            if bowRank < 3 then
+                return 27 + bowRank * 3
             else
-                return 27 + rank * 3 + 5
+                return 27 + bowRank * 3 + 5
             end
         end
 
         bow, bowExp, bowRank = PlayerHasBuff(SpellIdToName(19854))
-        rank = tonumber(bowRank)
 
         if bow then
-            if rank < 6 then
-                return 5 + rank * 5
+            if bowRank < 6 then
+                return 5 + bowRank * 5
             else
-                return 25 + (rank-5) * 8 -- Rank 6 = 33, Rank 7 = 41
+                return 25 + (bowRank-5) * 8 -- Rank 6 = 33, Rank 7 = 41
             end
         end
 
