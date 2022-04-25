@@ -191,19 +191,22 @@ do -- private scope
             return false
         end
 
-        local mid = FSR_STATS.MP2FromSpirit() -- FiveSecondRule_Options.averageManaTick
+
+        local mid = FSR_STATS.MP2FromSpirit()
+        --local mid = FiveSecondRule_Options.averageManaTick
+
         if (mid <= 0) then
             mid = FiveSecondRule_Options.averageManaTick
         end
 
         local low = mid * mp5Sensitivty
         local high = mid * (1 + (1 - mp5Sensitivty))
-        high = high + FSR_STATS.GetBlessingOfWisdomBonus()
+        high = high + FSR_STATS.MP2FromBuffs()
 
         if (tick <= low and tick >= FiveSecondRule.GetPowerMax() - FiveSecondRule.GetPower()) then
             return true -- last tick
         end
-
+        
         if (tick >= high) then
             return IsRapidRegening()
         end
@@ -214,12 +217,7 @@ do -- private scope
     function TrackTick(tick)    
         local now = GetTime()
 
-        local isDrinking = PlayerHasBuff(DRINK_NAME)
-        local hasInervate = PlayerHasBuff(INNERVATE_NAME)
-
-        local rapidRegen = FiveSecondRule.rapidRegenStartTime and (FiveSecondRule.rapidRegenStartTime + rapidRegenLeeway) >= now
-
-        if (isDrinking or hasInervate or rapidRegen) then
+        if (IsRapidRegening()) then
             return
         end
 

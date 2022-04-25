@@ -14,6 +14,137 @@ SPIRIT_MOD_BUFF_SPELL_IDS = {
 
 do -- private scope
 
+    local version, build, date, tocversion = GetBuildInfo()
+    local isTBC = tocversion >= 20000
+
+    local manaSpringRegen = {
+        [1] = 6,
+        [2] = 9,
+        [3] = 13,
+        [4] = 17,
+        [5] = 20,
+    }
+
+    local bowRegen = {
+        [1] = 10,
+        [2] = 15,
+        [3] = 20,
+        [4] = 25,
+        [5] = 30,
+        [6] = 33,
+        [7] = 41,
+    }
+
+    local greaterBowRegen = {
+        [1] = 30,
+        [2] = 33,
+        [3] = 41,
+    }
+
+    --[[---------------------------------
+	:GetNormalManaRegenFromSpi()
+    -------------------------------------
+    Notes:
+        * Formula and BASE_REGEN values derived by Whitetooth (hotdogee [at] gmail [dot] com)
+        * Calculates the mana regen per 1 seconds from spirit when out of 5 second rule for given intellect and level.
+        * Player class is no longer a parameter
+        * ManaRegen(SPI, INT, LEVEL) = (0.001+SPI*BASE_REGEN[LEVEL]*(INT^0.5))
+    Returns:
+        ; mp1o5sr : number - Mana regen per 1 seconds when out of 5 second rule
+    -----------------------------------]]
+
+    -- Numbers reverse engineered by Whitetooth (hotdogee [at] gmail [dot] com)
+    local BaseManaRegenPerSpi = {
+        [1] = 0.034965,
+        [2] = 0.034191,
+        [3] = 0.033465,
+        [4] = 0.032526,
+        [5] = 0.031661,
+        [6] = 0.031076,
+        [7] = 0.030523,
+        [8] = 0.029994,
+        [9] = 0.029307,
+        [10] = 0.028661,
+        [11] = 0.027584,
+        [12] = 0.026215,
+        [13] = 0.025381,
+        [14] = 0.0243,
+        [15] = 0.023345,
+        [16] = 0.022748,
+        [17] = 0.021958,
+        [18] = 0.021386,
+        [19] = 0.02079,
+        [20] = 0.020121,
+        [21] = 0.019733,
+        [22] = 0.019155,
+        [23] = 0.018819,
+        [24] = 0.018316,
+        [25] = 0.017936,
+        [26] = 0.017576,
+        [27] = 0.017201,
+        [28] = 0.016919,
+        [29] = 0.016581,
+        [30] = 0.016233,
+        [31] = 0.015994,
+        [32] = 0.015707,
+        [33] = 0.015464,
+        [34] = 0.015204,
+        [35] = 0.014956,
+        [36] = 0.014744,
+        [37] = 0.014495,
+        [38] = 0.014302,
+        [39] = 0.014094,
+        [40] = 0.013895,
+        [41] = 0.013724,
+        [42] = 0.013522,
+        [43] = 0.013363,
+        [44] = 0.013175,
+        [45] = 0.012996,
+        [46] = 0.012853,
+        [47] = 0.012687,
+        [48] = 0.012539,
+        [49] = 0.012384,
+        [50] = 0.012233,
+        [51] = 0.012113,
+        [52] = 0.011973,
+        [53] = 0.011859,
+        [54] = 0.011714,
+        [55] = 0.011575,
+        [56] = 0.011473,
+        [57] = 0.011342,
+        [58] = 0.011245,
+        [59] = 0.01111,
+        [60] = 0.010999,
+        [61] = 0.0107,
+        [62] = 0.010522,
+        [63] = 0.01029,
+        [64] = 0.010119,
+        [65] = 0.009968,
+        [66] = 0.009808,
+        [67] = 0.009651,
+        [68] = 0.009553,
+        [69] = 0.009445,
+        [70] = 0.009327,
+        [71] = 0.008859,
+        [72] = 0.008415,
+        [73] = 0.007993,
+        [74] = 0.007592,
+        [75] = 0.007211,
+        [76] = 0.006849,
+        [77] = 0.006506,
+        [78] = 0.006179,
+        [79] = 0.005869,
+        [80] = 0.005575,
+    }
+
+    local function GetNormalManaRegenFromSpi()
+        local level = UnitLevel("player")
+        local _, int = UnitStat("player",4)
+        local _, spi = UnitStat("player",5)
+
+        return (0.001 + spi * BaseManaRegenPerSpi[level] * (int ^ 0.5))
+    end
+
     local function Round(num, decimalPlaces)
         if not num then
             return 0
@@ -22,127 +153,24 @@ do -- private scope
         return math.floor(num * mult + 0.5) / mult
     end
 
-    local function MP5FromItems()
-        local mp5 = 0
-        for i = 1, 18 do
-            local itemLink = GetInventoryItemLink("player", i)
-            if itemLink then
-                local stats = GetItemStats(itemLink)
-                if stats then
-                    local statMP5 = stats["ITEM_MOD_POWER_REGEN0_SHORT"]
-                    if statMP5 then
-                        mp5 = mp5 + statMP5 + 1
-                    end
-                end
-            end
-        end
-        return mp5
-    end
-
     local lastManaReg = 0
 
-    local function MP5FromSpirit()
+    local function MP1FromSpirit()
         local base, _ = GetManaRegen() -- Returns mana reg per 1 second
+
+        if (isTBC) then
+            base = GetNormalManaRegenFromSpi()
+        end
+
         if base < 1 then
             base = lastManaReg
         end
         lastManaReg = base
-        return Round(base, 0) * 5
+        return Round(base, 0)
     end
 
     local function MP2FromSpirit()
-        local base, _ = GetManaRegen() -- Returns mana reg per 1 second
-        if base < 1 then
-            base = lastManaReg
-        end
-        lastManaReg = base
-        return Round(base, 0) * 2
-    end
-
-    local function GetTalentModifierMP5()
-        local _, _, classId = UnitClass("player")
-        local mod = 0
-
-        if classId == 5 then -- Priest
-            local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 8)
-            mod = points * 0.05 -- 0-15% from Meditation
-        elseif classId == 8 then -- Mage
-            local _, _, _, _, points, _, _, _ = GetTalentInfo(1, 12)
-            mod = points * 0.05 -- 0-15% Arcane Meditation
-        elseif classId == 11 then -- Druid
-            local _, _, _, _, points, _, _, _ = GetTalentInfo(3, 6)
-            mod = points * 0.05 -- 0-15% from Reflection
-        end
-
-        return mod
-    end
-
-    local function HasSetBonusModifierMP5()
-        local _, _, classId = UnitClass("player")
-        local hasSetBonus = false
-        local setCounter = 0
-
-        for i = 1, 18 do
-            local itemLink = GetInventoryItemLink("player", i)
-            if itemLink then
-                local itemName = C_Item.GetItemNameByID(GetInventoryItemLink("player", i))
-
-                if itemName then
-                    if classId == 5 then -- Priest
-                        if string.sub(itemName, -13) == "Transcendence" or string.sub(itemName, -11) == "Erhabenheit" or string.sub(itemName, -13) == "Trascendencia" or string.sub(itemName, -13) == "transcendance" or string.sub(itemName, -14) == "Transcendência" then
-                            setCounter = setCounter + 1
-                        end
-                    elseif classId == 11 then -- Druid
-                        if string.sub(itemName, 1, 9) == "Stormrage" or string.sub(itemName, -9) == "Stormrage" or string.sub(itemName, -10) == "Tempestira" or string.sub(itemName, -11) == "Tempesfúria" then
-                            setCounter = setCounter + 1
-                        end
-                    end
-                end
-            end
-        end
-
-        if setCounter >= 3 then
-            hasSetBonus = true
-        end
-
-        return hasSetBonus
-    end
-
-    -- Get manaregen while casting
-    local function MP5WhileCasting()
-        local _, casting = GetManaRegen() -- Returns mana reg per 1 second
-        if casting < 1 then
-            casting = lastManaReg
-        end
-        lastManaReg = casting
-
-        local mod = GetTalentModifierMP5()
-        if HasSetBonusModifierMP5() then
-            mod = mod + 0.15
-        end
-        if mod > 0 then
-            casting = casting * mod
-        end
-
-        local mp5Items = MP5FromItems()
-        casting = (casting * 5) + mp5Items
-
-        return Round(casting, 2)
-    end
-
-    local function MP5FromBuffs()
-        local result = 0
-
-        for i=1,40 do
-            local name, _, count, _, _, expirationTime, _, _, _, spellId  = UnitBuff("player",i)
-            if spellId then
-                local text = GetSpellDescription(spellId)
-                print(name, GetSpellSubtext(spellId), text)
-
-            end
-        end
-
-        return result    
+        return MP1FromSpirit() * 2
     end
 
     local function GetSpellRank(spellId)
@@ -160,36 +188,52 @@ do -- private scope
 
     local function GetBlessingOfWisdomBonus()
         -- DOES NOT INCLUDE MODIFIER TALENTS (rank 1 = 10%, rank 2 = 20%)
-        local bow, bowExp, bowRank = PlayerHasBuff(SpellIdToName(25918))
+        local greaterBow, _, greaterBowRank = PlayerHasBuff(SpellIdToName(25918))
 
-        if bow then
-            if bowRank < 3 then
-                return 27 + bowRank * 3
-            else
-                return 27 + bowRank * 3 + 5
-            end
+        if greaterBow then
+            return greaterBowRegen[greaterBowRank]
         end
 
-        bow, bowExp, bowRank = PlayerHasBuff(SpellIdToName(19854))
+        local bow, _, bowRank = PlayerHasBuff(SpellIdToName(19854))
 
         if bow then
-            if bowRank < 6 then
-                return 5 + bowRank * 5
-            else
-                return 25 + (bowRank-5) * 8 -- Rank 6 = 33, Rank 7 = 41
-            end
+            return bowRegen[bowRank]
         end
 
         return 0
     end
 
+    local function GetEpiphanyBonus() 
+        -- Priest T3 full set bonus buff proc
+        local epiphany = PlayerHasBuff(SpellIdToName(28802))
+        if (epiphany) then
+            return 24
+        end
+        return 0
+    end
+
+    local function GetManaSpringBonus() 
+        -- disregards Improved Mana Spring Totem (+3 bonus MP2)
+        local spring, _, rank = PlayerHasBuff(SpellIdToName(25569))
+        if (spring) then
+            return manaSpringRegen[rank]
+        end
+        return 0
+    end
+
+    local function MP2FromBuffs()
+        local result = 0
+        return result 
+        + GetEpiphanyBonus() 
+        + GetBlessingOfWisdomBonus()
+        + GetManaSpringBonus()
+
+    end
+
+
     -- Expose Field Variables and Functions
-    FSR_STATS.MP5FromItems = MP5FromItems
-    FSR_STATS.MP5FromSpirit = MP5FromSpirit
     FSR_STATS.MP2FromSpirit = MP2FromSpirit
-    FSR_STATS.MP5WhileCasting = MP5WhileCasting
-    FSR_STATS.MP5FromBuffs = MP5FromBuffs
+    FSR_STATS.MP2FromBuffs = MP2FromBuffs
     FSR_STATS.GetSpellRank = GetSpellRank
-    FSR_STATS.GetBlessingOfWisdomBonus = GetBlessingOfWisdomBonus
 
 end
