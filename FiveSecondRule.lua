@@ -24,8 +24,6 @@ do -- Private Scope
         ["statusBarBackgroundColor"] = {0,0,0,0.55},
         ["manaTicksColor"] = {0.95, 0.95, 0.95, 1},
         ["manaTicksBackgroundColor"] = {0.35, 0.35, 0.35, 0.8},
-        ["tickSizeRunningWindow"] = {},
-        ["averageManaTick"] = 0
     }
 
     -- STATE VARIABLES
@@ -105,11 +103,6 @@ do -- Private Scope
 
         if event == "PLAYER_EQUIPMENT_CHANGED" then
             savePlayerPower()
-            TickBar:ResetRunningAverage()
-        end
-
-        if event == "PLAYER_UNGHOST" then
-            TickBar:ResetRunningAverage()
         end
     end
 

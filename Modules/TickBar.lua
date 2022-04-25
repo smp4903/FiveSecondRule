@@ -7,7 +7,6 @@ do -- private scope
     local manaTickTime = 0
     local powerRegenTime = 2
     local mp5Sensitivty = 0.80
-    local runningAverageSize = 5
     local rapidRegenLeeway = 500
 
     -- LOCALIZED STRINGS
@@ -141,8 +140,6 @@ do -- private scope
                             tickSize = tickSize / 2
                         end
 
-                        TrackTick(tickSize)
-
                         if validTick then
                             manaTickTime = GetTime() + powerRegenTime
                         end
@@ -193,11 +190,6 @@ do -- private scope
 
 
         local mid = FSR_STATS.MP2FromSpirit()
-        --local mid = FiveSecondRule_Options.averageManaTick
-
-        if (mid <= 0) then
-            mid = FiveSecondRule_Options.averageManaTick
-        end
 
         local low = mid * mp5Sensitivty
         local high = mid * (1 + (1 - mp5Sensitivty))
@@ -206,45 +198,14 @@ do -- private scope
         if (tick <= low and tick >= FiveSecondRule.GetPowerMax() - FiveSecondRule.GetPower()) then
             return true -- last tick
         end
-        
+
         if (tick >= high) then
             return IsRapidRegening()
         end
 
         return tick > low
     end
-
-    function TrackTick(tick)    
-        local now = GetTime()
-
-        if (IsRapidRegening()) then
-            return
-        end
-
-        table.insert(FiveSecondRule_Options.tickSizeRunningWindow, tick)
-
-        if (table.getn(FiveSecondRule_Options.tickSizeRunningWindow) > runningAverageSize) then
-            table.remove(FiveSecondRule_Options.tickSizeRunningWindow, 1)
-        end
-
-        local sum = 0
-        local ave = 0
-        local elements = #FiveSecondRule_Options.tickSizeRunningWindow
-        
-        for i = 1, elements do
-            sum = sum + FiveSecondRule_Options.tickSizeRunningWindow[i]
-        end
-        
-        ave = sum / elements
-
-        FiveSecondRule_Options.averageManaTick = ave
-    end
     
-    function ResetRunningAverage()
-        FiveSecondRule_Options.tickSizeRunningWindow = {}
-        FiveSecondRule_Options.averageManaTick = 0
-    end
-
     function PlayerHasBuff(nameString)
         for i=1,40 do
             local name, _, _, _, _, expirationTime, _, _, _, spellId = UnitBuff("player",i)
@@ -302,7 +263,6 @@ do -- private scope
     TickBar.OnUpdate = OnUpdate
     TickBar.Reset = Reset
     TickBar.LoadSpells = LoadSpells
-    TickBar.ResetRunningAverage = ResetRunningAverage
 
 end
 
