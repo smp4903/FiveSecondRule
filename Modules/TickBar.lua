@@ -188,6 +188,8 @@ do -- private scope
             return false
         end
 
+        -- pass the mana tick through a low and high pass filter, defined from the average mana regen
+        -- considers some buffs when defining the "high" threshold, because they can collide
 
         local mid = FSR_STATS.MP2FromSpirit()
 
@@ -200,6 +202,7 @@ do -- private scope
         end
 
         if (tick >= high) then
+            -- if the tick exceeds the "high" threshold, check if we're regenerating rapidly
             return IsRapidRegening()
         end
 
