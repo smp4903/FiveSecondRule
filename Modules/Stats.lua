@@ -191,13 +191,19 @@ do -- private scope
         local greaterBow, _, greaterBowRank = PlayerHasBuff(SpellIdToName(25918))
 
         if greaterBow then
-            return greaterBowRegen[greaterBowRank]
+            local regen = greaterBowRegen[greaterBowRank]
+            if regen then
+                return regen
+            end
         end
 
         local bow, _, bowRank = PlayerHasBuff(SpellIdToName(19854))
 
         if bow then
-            return bowRegen[bowRank]
+            local regen = bowRegen[bowRank]
+            if regen then
+                return regen
+            end
         end
 
         return 0
@@ -216,7 +222,10 @@ do -- private scope
         -- disregards Improved Mana Spring Totem (+3 bonus MP2)
         local spring, _, rank = PlayerHasBuff(SpellIdToName(25569))
         if (spring) then
-            return manaSpringRegen[rank]
+            local regen = manaSpringRegen[rank]
+            if regen then
+                return regen
+            end
         end
         return 0
     end
