@@ -15,7 +15,7 @@ NAMESPACE.OptionsPanelFrame = OptionsPanelFrame
 OptionsPanelFrame:RegisterEvent("PLAYER_LOGIN")
 OptionsPanelFrame:SetScript("OnEvent",
     function(self, event, arg1, ...)
-        if event == "PLAYER_LOGIN" then
+        if event == "PLAYER_LOGIN" and FiveSecondRule.IsGameVersionValid() then
             local loader = CreateFrame('Frame', nil, InterfaceOptionsFrame)
             loader:SetScript('OnShow', function(self)
                 self:SetScript('OnShow', nil)

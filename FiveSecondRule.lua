@@ -43,12 +43,32 @@ do -- Private Scope
     FiveSecondRule:SetScript("OnUpdate", function(self, sinceLastUpdate) onUpdate(sinceLastUpdate); end);
 
     -- INITIALIZATION
-    function Init()  
+    function Init()
+        if (not IsGameVersionValid()) then
+            PrintNotSupported()
+            DisableAddon()
+            return
+        end
+
         LoadOptions()
 
         TickBar:LoadSpells() -- LOCALIZATION
         FiveSecondRule:Refresh()
+
+        PrintHelp()
+
     end
+
+    function IsGameVersionValid()
+        local _, _, _, tocversion = GetBuildInfo()
+        return tocversion < 30400 -- Before WOTLK Classic
+    end
+
+    function DisableAddon()
+        FiveSecondRule:SetScript("OnUpdate", nil)
+        DisableAddOn(ADDON_NAME)
+    end
+    
 
     function LoadOptions()
         FiveSecondRule_Options = FiveSecondRule_Options or AddonUtils:deepcopy(defaults)
@@ -65,14 +85,13 @@ do -- Private Scope
     function onEvent(self, event, arg1, ...)
         if (select(2, UnitClass("player")) == "WARRIOR") then
             -- Disable the addon for warriors, since there is no reliable power or life to track in order to show power ticks.
-            FiveSecondRule:SetScript("OnUpdate", nil)
+            DisableAddon()
             return
         end
 
         if event == "ADDON_LOADED" then
             if arg1 == ADDON_NAME then
                 Init()
-                PrintHelp()
             end
         end
 
@@ -189,6 +208,13 @@ do -- Private Scope
         print("|cff"..colorHex.."FiveSecondRule loaded - /fsr")
     end
 
+    function PrintNotSupported()
+        local colorHex = "ed2d2d"
+        print("|cff"..colorHex.."FiveSecondRule is not supported in this game version.")
+        print("|cff"..colorHex.."The addon has been automatically disable with effect from your next UI reload.")
+    end
+    
+
     -- Expose Field Variables and Functions
     FiveSecondRule.Unlock = Unlock
     FiveSecondRule.Lock = Lock
@@ -198,6 +224,7 @@ do -- Private Scope
     FiveSecondRule.GetPower = GetPower
     FiveSecondRule.GetPowerMax = GetPowerMax
     FiveSecondRule.GetPowerType = GetPowerType
+    FiveSecondRule.IsGameVersionValid = IsGameVersionValid
     
 end
 
