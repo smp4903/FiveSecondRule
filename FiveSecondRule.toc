@@ -1,6 +1,6 @@
 ## Interface: 30400
 ## Title: Five Second Rule 
-## Notes: Track the so-called "5-second-rule" (5SR or FSR), which refers to the time needed to elapse after spending mana, for mana regen to resume. Notable, this rule excludes "mp5"-gear.
+## Notes: Track the "5-second-rule" (5SR or FSR) which refers to the cooldown of five seconds after spending mana before spirit-based regen resumes.
 ## Version: 1.34
 ## DefaultState: enabled
 ## Author: CassiniEU @ Twitch.com
