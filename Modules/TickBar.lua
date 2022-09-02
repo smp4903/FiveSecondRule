@@ -114,6 +114,11 @@ do -- private scope
     end
     
     function OnUpdate()       
+        if (FiveSecondRule.IsWOTLK()) then
+            tickbar:Hide()
+            return
+        end
+        
         if FiveSecondRule_Options.showTicks then
 
             rapidRegenLeeway = 500 + GetLatency()

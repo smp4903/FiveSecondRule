@@ -15,7 +15,7 @@ NAMESPACE.OptionsPanelFrame = OptionsPanelFrame
 OptionsPanelFrame:RegisterEvent("PLAYER_LOGIN")
 OptionsPanelFrame:SetScript("OnEvent",
     function(self, event, arg1, ...)
-        if event == "PLAYER_LOGIN" and FiveSecondRule.IsGameVersionValid() then
+        if event == "PLAYER_LOGIN" then
             local loader = CreateFrame('Frame', nil, InterfaceOptionsFrame)
             loader:SetScript('OnShow', function(self)
                 self:SetScript('OnShow', nil)
@@ -96,8 +96,15 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- WHETHER OR NOT TO SHOW THE MANA TICKS BAR
     if (not frame.content.ticks) then
-        local ticks = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."Ticks", frame.content, "Check to show when the next mana regen tick will fulfil.")
-        ticks.label:SetText("Show Mana Ticks")
+        local ticks = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."Ticks", frame.content, "")
+        local text = "Show mana ticks"
+
+        if (FiveSecondRule.IsWOTLK()) then
+          text = text.." (disabled in WOTLK)"
+          ticks:Disable()
+        end
+
+        ticks.label:SetText(text)
         ticks:SetPoint("TOPLEFT", 10, -30)
         ticks:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.showTicks = self:GetChecked()
@@ -143,8 +150,15 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     -- ALWAYS SHOW MANA TICKS?
     if (not frame.content.alwaysShowTicks) then
-        local alwaysShowTicks = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."alwaysShowTicks", frame.content, "Check to always show incoming mana ticks")
-        alwaysShowTicks.label:SetText("Always show mana ticks")
+        local alwaysShowTicks = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."alwaysShowTicks", frame.content, "")
+        local text = "Always show mana ticks"
+
+        if (FiveSecondRule.IsWOTLK()) then
+          text = text.." (disabled in WOTLK)"
+          alwaysShowTicks:Disable()
+        end
+
+        alwaysShowTicks.label:SetText(text)
         alwaysShowTicks:SetPoint("TOPLEFT", 10, -150)
         alwaysShowTicks:SetScript("OnClick",function(self,button)
             FiveSecondRule_Options.alwaysShowTicks = self:GetChecked()
@@ -188,7 +202,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         FiveSecondRule_Options.barWidth = tonumber(self:GetText())
         FiveSecondRule:Refresh()
     end)
-    barWidth:SetPoint("TOPLEFT", 250, -30)
+    barWidth:SetPoint("TOPLEFT", 315, -30)
     barWidth:SetCursorPosition(0)
     frame.content.barWidth = barWidth
 
@@ -235,7 +249,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
         FiveSecondRule_Options.barLeft = tonumber(self:GetText())
         FiveSecondRule:Refresh()
     end)
-    barLeft:SetPoint("TOPLEFT", 250, -90)
+    barLeft:SetPoint("TOPLEFT", 315, -90)
     barLeft:SetCursorPosition(0)
     frame.content.barLeft = barLeft
 

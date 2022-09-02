@@ -44,12 +44,6 @@ do -- Private Scope
 
     -- INITIALIZATION
     function Init()
-        if (not IsGameVersionValid()) then
-            PrintNotSupported()
-            DisableAddon()
-            return
-        end
-
         LoadOptions()
 
         TickBar:LoadSpells() -- LOCALIZATION
@@ -59,9 +53,9 @@ do -- Private Scope
 
     end
 
-    function IsGameVersionValid()
+    function IsWOTLK()
         local _, _, _, tocversion = GetBuildInfo()
-        return tocversion < 30400 -- Before WOTLK Classic
+        return tocversion >= 30400
     end
 
     function DisableAddon()
@@ -77,6 +71,11 @@ do -- Private Scope
             if (FiveSecondRule_Options[key] == nil) then
                 FiveSecondRule_Options[key] = value
             end
+        end
+
+        if (IsWOTLK()) then
+            FiveSecondRule_Options["alwaysShowTicks"] = false
+            FiveSecondRule_Options["showTicks"] = false
         end
 
         FiveSecondRule_Options.unlocked = false
@@ -224,7 +223,7 @@ do -- Private Scope
     FiveSecondRule.GetPower = GetPower
     FiveSecondRule.GetPowerMax = GetPowerMax
     FiveSecondRule.GetPowerType = GetPowerType
-    FiveSecondRule.IsGameVersionValid = IsGameVersionValid
+    FiveSecondRule.IsWOTLK = IsWOTLK
     
 end
 
