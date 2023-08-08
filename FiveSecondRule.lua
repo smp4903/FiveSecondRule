@@ -226,5 +226,3 @@ do -- Private Scope
     FiveSecondRule.IsWOTLK = IsWOTLK
     
 end
-
-return FiveSecondRule
