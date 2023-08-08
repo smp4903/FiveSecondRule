@@ -103,7 +103,8 @@ do -- Private Scope
         end
 
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
-            if GetPower() < FiveSecondRule.previousPower then
+            -- Make sure we spent mana, as free casts do not trigger FSR.
+            if arg1 == "player" and GetPower() < FiveSecondRule.previousPower then
                 -- Only show the FSR for classes using mana
                 -- Subsequently, this also means that the tick bar won't be hidden for classes not using mana (rogue)
                 if (FiveSecondRule.GetPowerType() == 0) then
