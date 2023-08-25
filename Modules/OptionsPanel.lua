@@ -16,15 +16,10 @@ OptionsPanelFrame:RegisterEvent("PLAYER_LOGIN")
 OptionsPanelFrame:SetScript("OnEvent",
     function(self, event, arg1, ...)
         if event == "PLAYER_LOGIN" then
-            local loader = CreateFrame('Frame', nil, InterfaceOptionsFrame)
-            loader:SetScript('OnShow', function(self)
-                self:SetScript('OnShow', nil)
-
-                if not OptionsPanelFrame.optionsPanel then
-                    OptionsPanelFrame.optionsPanel = OptionsPanelFrame:CreateGUI(ADDON_NAME)
-                    InterfaceOptions_AddCategory(OptionsPanelFrame.optionsPanel);
-                end
-            end)
+            if not OptionsPanelFrame.optionsPanel then
+                OptionsPanelFrame.optionsPanel = OptionsPanelFrame:CreateGUI(ADDON_NAME)
+                InterfaceOptions_AddCategory(OptionsPanelFrame.optionsPanel);
+            end
         end
     end
 );
