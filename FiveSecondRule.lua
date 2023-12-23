@@ -48,9 +48,6 @@ do -- Private Scope
 
         TickBar:LoadSpells() -- LOCALIZATION
         FiveSecondRule:Refresh()
-
-        PrintHelp()
-
     end
 
     function IsWOTLK()
@@ -84,6 +81,7 @@ do -- Private Scope
     function onEvent(self, event, arg1, ...)
         if (select(2, UnitClass("player")) == "WARRIOR") then
             -- Disable the addon for warriors, since there is no reliable power or life to track in order to show power ticks.
+            print("FiveSecondRule addon has been disabled!")
             DisableAddon()
             return
         end
@@ -203,11 +201,6 @@ do -- Private Scope
         Init()
     end
 
-    function PrintHelp()
-        local colorHex = "2979ff"
-        print("|cff"..colorHex.."FiveSecondRule loaded - /fsr")
-    end
-
     function PrintNotSupported()
         local colorHex = "ed2d2d"
         print("|cff"..colorHex.."FiveSecondRule is not supported in this game version.")
@@ -219,7 +212,6 @@ do -- Private Scope
     FiveSecondRule.Unlock = Unlock
     FiveSecondRule.Lock = Lock
     FiveSecondRule.Reset = Reset
-    FiveSecondRule.PrintHelp = PrintHelp
     FiveSecondRule.Refresh = Refresh
     FiveSecondRule.GetPower = GetPower
     FiveSecondRule.GetPowerMax = GetPowerMax
