@@ -57,7 +57,11 @@ do -- Private Scope
 
     function DisableAddon()
         FiveSecondRule:SetScript("OnUpdate", nil)
-        DisableAddOn(ADDON_NAME)
+        FiveSecondRule:Hide()
+    end
+
+    function EnableAddon()
+        FiveSecondRule:Show()
     end
     
 
@@ -84,6 +88,8 @@ do -- Private Scope
             print("FiveSecondRule addon has been disabled!")
             DisableAddon()
             return
+        else
+            EnableAddon()
         end
 
         if event == "ADDON_LOADED" then
