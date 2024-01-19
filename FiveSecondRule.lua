@@ -40,11 +40,18 @@ do -- Private Scope
     FiveSecondRule:RegisterEvent("PLAYER_UNGHOST")
 
     FiveSecondRule:SetScript("OnEvent", function(self, event, arg1, ...) onEvent(self, event, arg1, ...) end);
-    FiveSecondRule:SetScript("OnUpdate", function(self, sinceLastUpdate) onUpdate(sinceLastUpdate); end);
 
     -- INITIALIZATION
     function Init()
         LoadOptions()
+
+        if (select(2, UnitClass("player")) == "WARRIOR") then
+            -- Disable the addon for warriors, since there is no reliable power or life to track in order to show power ticks.
+            DisableAddon()
+            return
+        else
+            EnableAddon()
+        end
 
         TickBar:LoadSpells() -- LOCALIZATION
         FiveSecondRule:Refresh()
@@ -56,10 +63,14 @@ do -- Private Scope
     end
 
     function DisableAddon()
+        StatusBar.statusbar:Hide()
+        TickBar.tickbar:Hide()
         FiveSecondRule:SetScript("OnUpdate", nil)
-        DisableAddOn(ADDON_NAME)
     end
-    
+
+    function EnableAddon()
+        FiveSecondRule:SetScript("OnUpdate", function(self, sinceLastUpdate) onUpdate(sinceLastUpdate); end);
+    end
 
     function LoadOptions()
         FiveSecondRule_Options = FiveSecondRule_Options or AddonUtils:deepcopy(defaults)
@@ -79,25 +90,22 @@ do -- Private Scope
     end
 
     function onEvent(self, event, arg1, ...)
-        if (select(2, UnitClass("player")) == "WARRIOR") then
-            -- Disable the addon for warriors, since there is no reliable power or life to track in order to show power ticks.
-            print("FiveSecondRule addon has been disabled!")
-            DisableAddon()
-            return
-        end
-
         if event == "ADDON_LOADED" then
             if arg1 == ADDON_NAME then
                 Init()
             end
         end
 
+        if not FiveSecondRule_Options.enabled then
+            return
+        end
+
         if event == "PLAYER_ENTERING_WORLD" then
             savePlayerPower()
         end
 
-        if not FiveSecondRule_Options.enabled then
-            return
+        if event == "PLAYER_EQUIPMENT_CHANGED" then
+            savePlayerPower()
         end
 
         if event == "UNIT_SPELLCAST_SUCCEEDED" then
@@ -116,10 +124,6 @@ do -- Private Scope
                     StatusBar.statusbar:Show()
                 end
             end
-        end
-
-        if event == "PLAYER_EQUIPMENT_CHANGED" then
-            savePlayerPower()
         end
     end
 
