@@ -19,7 +19,7 @@ end
 function FiveSecondRule.UIFactory:MakeText(parent, text, size)
     local text_obj = parent:CreateFontString(nil, "ARTWORK")
     text_obj:SetFont("Fonts/FRIZQT__.ttf", size)
-    text_obj:SetJustifyV("CENTER")
+    text_obj:SetJustifyV("MIDDLE")
     text_obj:SetJustifyH("CENTER")
     text_obj:SetText(text)
     return text_obj
@@ -43,7 +43,7 @@ function FiveSecondRule.UIFactory:MakeEditBox(name, parent, title, w, h, enter_f
     edit_box_obj:SetAutoFocus(false)
     edit_box_obj:SetMaxLetters(4)
     edit_box_obj:SetJustifyH("CENTER")
-	edit_box_obj:SetJustifyV("CENTER")
+    edit_box_obj:SetJustifyV("MIDDLE")
     edit_box_obj:SetFontObject(GameFontNormal)
     edit_box_obj:SetScript("OnEnterPressed", function(self)
         enter_func(self)
