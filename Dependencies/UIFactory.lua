@@ -1,4 +1,4 @@
-FiveSecondRule.UIFactory = {} 
+FiveSecondRule.UIFactory = {}
 
 function FiveSecondRule.UIFactory:MakeCheckbox(name, parent, tooltip_text)
     local cb = CreateFrame("CheckButton", name, parent, "UICheckButtonTemplate")
@@ -19,7 +19,7 @@ end
 function FiveSecondRule.UIFactory:MakeText(parent, text, size)
     local text_obj = parent:CreateFontString(nil, "ARTWORK")
     text_obj:SetFont("Fonts/FRIZQT__.ttf", size)
-    text_obj:SetJustifyV("CENTER")
+    text_obj:SetJustifyV("MIDDLE")
     text_obj:SetJustifyH("CENTER")
     text_obj:SetText(text)
     return text_obj
@@ -43,7 +43,7 @@ function FiveSecondRule.UIFactory:MakeEditBox(name, parent, title, w, h, enter_f
     edit_box_obj:SetAutoFocus(false)
     edit_box_obj:SetMaxLetters(4)
     edit_box_obj:SetJustifyH("CENTER")
-	edit_box_obj:SetJustifyV("CENTER")
+	edit_box_obj:SetJustifyV("MIDDLE")
     edit_box_obj:SetFontObject(GameFontNormal)
     edit_box_obj:SetScript("OnEnterPressed", function(self)
         enter_func(self)
@@ -63,7 +63,7 @@ function FiveSecondRule.UIFactory:MakeButton(name, parent, width, height, text, 
     return button
 end
 
-function FiveSecondRule.UIFactory:MakeColor(r,g,b,a) 
+function FiveSecondRule.UIFactory:MakeColor(r,g,b,a)
     return {r = r, g = g, b = b, a = a}
 end
 
@@ -91,7 +91,7 @@ end
 function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
     ColorPickerFrame:SetColorRGB(r,g,b);
     ColorPickerFrame.hasOpacity = (a ~= nil);
-    
+
     if (ColorPickerFrame.hasOpacity) then
         ColorPickerFrame.opacity = a
         OpacitySliderFrame:SetValue(a) -- the value is not set automatically by the ColorPickerFrame
@@ -101,7 +101,7 @@ function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
 
     ColorPickerFrame.func = changedCallback
 
-    ColorPickerFrame:SetScript("OnShow", function () 
+    ColorPickerFrame:SetScript("OnShow", function ()
         FiveSecondRule:Unlock();
 
         -- Add callbacks when the color picker is shown, since they might have been removed from previous use
@@ -109,7 +109,7 @@ function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
         ColorPickerFrame.opacityFunc = changedCallback
     end)
 
-    ColorPickerFrame:SetScript("OnHide", function () 
+    ColorPickerFrame:SetScript("OnHide", function ()
         FiveSecondRule:Lock();
 
         -- Remove callbacks to avoid leaking callbacks when using multiple color pickers
@@ -122,9 +122,9 @@ function FiveSecondRule.UIFactory:ShowColorPicker(r, g, b, a, changedCallback)
 
 end
 
-function FiveSecondRule.UIFactory:UnpackColor(restore) 
+function FiveSecondRule.UIFactory:UnpackColor(restore)
     local newR, newG, newB, newA
-            
+
     if restore then
      newR, newG, newB, newA = unpack(restore)
     else

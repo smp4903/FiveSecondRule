@@ -1,5 +1,5 @@
 -- COMMANDS
-SLASH_FSR1 = '/fsr'; 
+SLASH_FSR1 = '/fsr';
 
 function SlashCmdList.FSR(msg, editbox)
     local cmd = msg:lower()
@@ -18,13 +18,13 @@ function SlashCmdList.FSR(msg, editbox)
         print("Five Second Rule - RESET ALL SETTINGS")
         FiveSecondRule:Reset()
     end
-    
+
     if cmd == "enable" or cmd == "enabled" then
         print("Five Second Rule - ENABLED")
         FiveSecondRule_Options.enabled = true
         FiveSecondRule:Refresh()
     end
-    
+
     if cmd == "disable" or cmd == "disabled" then
         print("Five Second Rule - DISABLED")
         FiveSecondRule_Options.enabled = false
@@ -32,7 +32,6 @@ function SlashCmdList.FSR(msg, editbox)
     end
 
     if cmd == "" or cmd == "help" then
-        FiveSecondRule:PrintHelp()  
-        InterfaceOptionsFrame_OpenToCategory(FiveSecondRule.OptionsPanelFrame)
+        InterfaceOptionsFrame_OpenToCategory(FiveSecondRule.OptionsPanelFrame.optionsPanel.title:GetText())
     end
 end
