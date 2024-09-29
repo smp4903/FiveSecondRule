@@ -18,7 +18,8 @@ OptionsPanelFrame:SetScript("OnEvent",
         if event == "PLAYER_LOGIN" then
             if not OptionsPanelFrame.optionsPanel then
                 OptionsPanelFrame.optionsPanel = OptionsPanelFrame:CreateGUI(ADDON_NAME)
-                InterfaceOptions_AddCategory(OptionsPanelFrame.optionsPanel);
+                OptionsPanelFrame.optionsPanel.category = Settings.RegisterCanvasLayoutCategory(OptionsPanelFrame.optionsPanel, ADDON_NAME)
+                Settings.RegisterAddOnCategory(OptionsPanelFrame.optionsPanel.category)
             end
         end
     end
@@ -30,7 +31,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     if frame == nil or frame.content == nil then
         return
     end
-    
+
     frame.content.ticks:SetChecked(FiveSecondRule_Options.showTicks == true)
     frame.content.flat:SetChecked(FiveSecondRule_Options.flat == true)
     frame.content.showText:SetChecked(FiveSecondRule_Options.showText == true)
@@ -38,7 +39,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.alwaysShowTicks:SetChecked(FiveSecondRule_Options.alwaysShowTicks == true)
     frame.content.enableCountdown:SetChecked(FiveSecondRule_Options.enableCountdown == true)
     frame.content.forceTrackDruidEnergy:SetChecked(FiveSecondRule_Options.forceTrackDruidEnergy == true)
-    
+
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
 
@@ -140,8 +141,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.showSpark = self:GetChecked()
             FiveSecondRule:Refresh()
         end)
-        frame.content.showSpark = showSpark        
-    end   
+        frame.content.showSpark = showSpark
+    end
 
     -- ALWAYS SHOW MANA TICKS?
     if (not frame.content.alwaysShowTicks) then
@@ -159,8 +160,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.alwaysShowTicks = self:GetChecked()
             FiveSecondRule:Refresh()
         end)
-        frame.content.alwaysShowTicks = alwaysShowTicks        
-    end  
+        frame.content.alwaysShowTicks = alwaysShowTicks
+    end
 
     -- ENABLE COUNTDOWN?
     if (not frame.content.enableCountdown) then
@@ -171,8 +172,8 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule_Options.enableCountdown = self:GetChecked()
             FiveSecondRule:Refresh()
         end)
-        frame.content.enableCountdown = enableCountdown        
-    end     
+        frame.content.enableCountdown = enableCountdown
+    end
 
     -- FORCE TRACK ENERGY FOR DRUIDS?
     if (not frame.content.forceTrackDruidEnergy) then
@@ -184,13 +185,13 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             FiveSecondRule:Refresh()
         end)
         frame.content.forceTrackDruidEnergy = forceTrackDruidEnergy
-        
-        if (select(2, UnitClass("player")) ~= "DRUID") then 
+
+        if (select(2, UnitClass("player")) ~= "DRUID") then
             frame.content.forceTrackDruidEnergy:Hide()
         end
 
-    end     
-    
+    end
+
 
     -- BAR
     local barWidth = FiveSecondRule.UIFactory:MakeEditBox(ADDON_NAME.."CountdownWidth", frame.content, "Width", 75, 25, function(self)
@@ -228,7 +229,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     frame.content.toggleLock = toggleLock
 
     -- RESET BUTTON
-    local resetButton = FiveSecondRule.UIFactory:MakeButton(ADDON_NAME.."ResetButton", frame.content, 60, 20, "Reset", 14, FiveSecondRule.UIFactory:MakeColor(1,1,1,1), function(self) 
+    local resetButton = FiveSecondRule.UIFactory:MakeButton(ADDON_NAME.."ResetButton", frame.content, 60, 20, "Reset", 14, FiveSecondRule.UIFactory:MakeColor(1,1,1,1), function(self)
         if (FiveSecondRule_Options.unlocked) then
             lockToggled(toggleLock)
         end
@@ -265,7 +266,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     if (not frame.content.statusBarForegroundColorFrame) then
         frame.content.statusBarForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."StatusBarColorFrame", frame.content, "Foreground", FiveSecondRule_Options.statusBarColor)
         frame.content.statusBarForegroundColorFrame:SetPoint("TOPLEFT", 12, -270)
-        frame.content.statusBarForegroundColorFrame:SetScript("OnMouseDown",  
+        frame.content.statusBarForegroundColorFrame:SetScript("OnMouseDown",
             function (self, button)
                 local editColor = AddonUtils:deepcopy(FiveSecondRule_Options.statusBarColor)
 
@@ -281,7 +282,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     if (not frame.content.statusBarBackgroundColorFrame) then
         frame.content.statusBarBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."StatusBarBackgroundColorFrame",  frame.content, "Background", FiveSecondRule_Options.statusBarBackgroundColor)
         frame.content.statusBarBackgroundColorFrame:SetPoint("TOPLEFT", 100, -270)
-        frame.content.statusBarBackgroundColorFrame:SetScript("OnMouseDown",  
+        frame.content.statusBarBackgroundColorFrame:SetScript("OnMouseDown",
             function (self, button)
                 local editColor = AddonUtils:deepcopy(FiveSecondRule_Options.statusBarBackgroundColor)
 
@@ -301,7 +302,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     if (not frame.content.manaTicksForegroundColorFrame) then
         frame.content.manaTicksForegroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."ManaTicksColorFrame",  frame.content, "Foreground", FiveSecondRule_Options.manaTicksColor)
         frame.content.manaTicksForegroundColorFrame:SetPoint("TOPLEFT", 12, -330)
-        frame.content.manaTicksForegroundColorFrame:SetScript("OnMouseDown",  
+        frame.content.manaTicksForegroundColorFrame:SetScript("OnMouseDown",
             function (self, button)
                 local editColor = AddonUtils:deepcopy(FiveSecondRule_Options.manaTicksColor)
 
@@ -317,7 +318,7 @@ function OptionsPanelFrame:CreateGUI(name, parent)
     if (not frame.content.manaTicksBackgroundColorFrame) then
         frame.content.manaTicksBackgroundColorFrame = FiveSecondRule.UIFactory:MakeColorPicker(ADDON_NAME.."ManaTicksBackgroundColorFrame", frame.content, "Background",  FiveSecondRule_Options.manaTicksBackgroundColor)
         frame.content.manaTicksBackgroundColorFrame:SetPoint("TOPLEFT", 100, -330)
-        frame.content.manaTicksBackgroundColorFrame:SetScript("OnMouseDown",  
+        frame.content.manaTicksBackgroundColorFrame:SetScript("OnMouseDown",
             function (self, button)
                 local editColor = AddonUtils:deepcopy(FiveSecondRule_Options.manaTicksBackgroundColor)
 
@@ -334,4 +335,3 @@ function OptionsPanelFrame:CreateGUI(name, parent)
 
     return frame
 end
-
