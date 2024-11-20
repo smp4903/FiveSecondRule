@@ -39,6 +39,7 @@ function OptionsPanelFrame:UpdateOptionValues()
     frame.content.alwaysShowTicks:SetChecked(FiveSecondRule_Options.alwaysShowTicks == true)
     frame.content.enableCountdown:SetChecked(FiveSecondRule_Options.enableCountdown == true)
     frame.content.forceTrackDruidEnergy:SetChecked(FiveSecondRule_Options.forceTrackDruidEnergy == true)
+    frame.content.integrateIntoPlayerFrame:SetChecked(FiveSecondRule_Options.integrateIntoPlayerFrame == true)
 
     frame.content.barWidth:SetText(tostring(FiveSecondRule_Options.barWidth))
     frame.content.barHeight:SetText(tostring(FiveSecondRule_Options.barHeight))
@@ -57,6 +58,24 @@ function OptionsPanelFrame:UpdateOptionValues()
 
     local mtbgc = FiveSecondRule_Options.manaTicksBackgroundColor
     frame.content.manaTicksBackgroundColorFrame:SetBackdropColor(mtbgc[1], mtbgc[2], mtbgc[3], mtbgc[4])
+
+    if (FiveSecondRule_Options.integrateIntoPlayerFrame) then
+        frame.content.statusBarTitle:Hide()
+        frame.content.manaTicksTitle:Hide()
+        frame.content.statusBarForegroundColorFrame:Hide()
+        frame.content.statusBarBackgroundColorFrame:Hide()
+        frame.content.manaTicksForegroundColorFrame:Hide()
+        frame.content.manaTicksBackgroundColorFrame:Hide()
+        frame.content.toggleLock:Hide()
+    else
+        frame.content.statusBarTitle:Show()
+        frame.content.manaTicksTitle:Show()
+        frame.content.statusBarForegroundColorFrame:Show()
+        frame.content.statusBarBackgroundColorFrame:Show()
+        frame.content.manaTicksForegroundColorFrame:Show()
+        frame.content.manaTicksBackgroundColorFrame:Show()
+        frame.content.toggleLock:Show()
+    end
 
     FiveSecondRule:Refresh()
 end
@@ -190,6 +209,19 @@ function OptionsPanelFrame:CreateGUI(name, parent)
             frame.content.forceTrackDruidEnergy:Hide()
         end
 
+    end
+
+    -- INTEGRATE INTO PLAYER FRAME MANA BAR?
+    if (not frame.content.integrateIntoPlayerFrame) then
+        local integrateIntoPlayerFrame = FiveSecondRule.UIFactory:MakeCheckbox(ADDON_NAME.."integrateIntoPlayerFrame", frame.content, "Check to integrate the countdown and tick spark into the player frame mana bar")
+        integrateIntoPlayerFrame.label:SetText("Integrate into Player frame mana bar")
+        integrateIntoPlayerFrame:SetPoint("TOPLEFT", 315, -180)
+        integrateIntoPlayerFrame:SetScript("OnClick",function(self,button)
+            FiveSecondRule_Options.integrateIntoPlayerFrame = self:GetChecked()
+            OptionsPanelFrame:UpdateOptionValues()
+            FiveSecondRule:Refresh()
+        end)
+        frame.content.integrateIntoPlayerFrame = integrateIntoPlayerFrame
     end
 
 

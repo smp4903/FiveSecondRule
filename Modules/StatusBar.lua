@@ -8,12 +8,23 @@ do -- private scope
 
     function Refresh()
         -- This function updates all properties on the statusbar that are dependant on options
-
+        
         -- POSITION, SIZE
         statusbar:ClearAllPoints()
-        statusbar:SetWidth(FiveSecondRule_Options.barWidth)
-        statusbar:SetHeight(FiveSecondRule_Options.barHeight)
-        statusbar:SetPoint("TOPLEFT", FiveSecondRule_Options.barLeft, FiveSecondRule_Options.barTop)
+
+        if FiveSecondRule_Options.integrateIntoPlayerFrame then
+            local pframe = PlayerFrameManaBar;
+            local point, relativeTo, relativePoint, xOfs, yOfs = PlayerFrameManaBar:GetPoint()
+    
+            -- POSITION, SIZE
+            statusbar:SetWidth(pframe:GetWidth())
+            statusbar:SetHeight(pframe:GetHeight())
+            statusbar:SetPoint(point, relativeTo, relativePoint, xOfs + 5, yOfs)
+        else
+            statusbar:SetWidth(FiveSecondRule_Options.barWidth)
+            statusbar:SetHeight(FiveSecondRule_Options.barHeight)
+            statusbar:SetPoint("TOPLEFT", FiveSecondRule_Options.barLeft, FiveSecondRule_Options.barTop)
+        end
 
         -- DRAGGING
         statusbar:SetScript("OnMouseDown", function(self, button) onMouseDown(button); end)
@@ -30,11 +41,16 @@ do -- private scope
         statusbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
         statusbar:GetStatusBarTexture():SetHorizTile(false)
         statusbar:GetStatusBarTexture():SetVertTile(false)
-        local sc = FiveSecondRule_Options.statusBarColor
-        statusbar:SetStatusBarColor(sc[1], sc[2], sc[3], sc[4])
-        if FiveSecondRule_Options.flat then
-            statusbar:GetStatusBarTexture():SetColorTexture(sc[1], sc[2], sc[3], sc[4])
-        end    
+        if FiveSecondRule_Options.integrateIntoPlayerFrame then
+            statusbar:SetStatusBarColor(0, 0, 0, 0)
+        else
+            local sc = FiveSecondRule_Options.statusBarColor
+            statusbar:SetStatusBarColor(sc[1], sc[2], sc[3], sc[4])
+
+            if FiveSecondRule_Options.flat then
+                statusbar:GetStatusBarTexture():SetColorTexture(sc[1], sc[2], sc[3], sc[4])
+            end        
+        end
 
         -- BACKGROUND
         if (not statusbar.bg) then
@@ -42,11 +58,17 @@ do -- private scope
         end
         statusbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
         statusbar.bg:SetAllPoints(true)
-        local sbc = FiveSecondRule_Options.statusBarBackgroundColor
-        statusbar.bg:SetVertexColor(sbc[1], sbc[2], sbc[3])
-        statusbar.bg:SetAlpha(sbc[4])
-        if FiveSecondRule_Options.flat then
-            statusbar.bg:SetColorTexture(sbc[1], sbc[2], sbc[3], sbc[4])
+
+        if FiveSecondRule_Options.integrateIntoPlayerFrame then
+            statusbar.bg:SetVertexColor(0, 0, 0)
+            statusbar.bg:SetAlpha(0)
+        else
+            local sbc = FiveSecondRule_Options.statusBarBackgroundColor
+            statusbar.bg:SetVertexColor(sbc[1], sbc[2], sbc[3])
+            statusbar.bg:SetAlpha(sbc[4])
+            if FiveSecondRule_Options.flat then
+                statusbar.bg:SetColorTexture(sbc[1], sbc[2], sbc[3], sbc[4])
+            end
         end
 
         -- TEXT

@@ -29,11 +29,22 @@ do -- private scope
 
     function Refresh()
         -- This function updates all properties on the tickbar that are dependant on options
-
+        
         -- POSITION, SIZE
-        tickbar:SetWidth(FiveSecondRule_Options.barWidth)
-        tickbar:SetHeight(FiveSecondRule_Options.barHeight)
-        tickbar:SetPoint("TOPLEFT", StatusBar.statusbar, 0, 0)
+        tickbar:ClearAllPoints()
+        if FiveSecondRule_Options.integrateIntoPlayerFrame then
+            local pframe = PlayerFrameManaBar;
+            local point, relativeTo, relativePoint, xOfs, yOfs = PlayerFrameManaBar:GetPoint()
+    
+            -- POSITION, SIZE
+            tickbar:SetWidth(pframe:GetWidth())
+            tickbar:SetHeight(pframe:GetHeight())
+            tickbar:SetPoint(point, relativeTo, relativePoint, xOfs + 5, yOfs)
+        else
+            tickbar:SetWidth(FiveSecondRule_Options.barWidth)
+            tickbar:SetHeight(FiveSecondRule_Options.barHeight)
+            tickbar:SetPoint("TOPLEFT", StatusBar.statusbar, 0, 0)    
+        end
 
         -- VALUE
         tickbar:SetMinMaxValues(0, 2)
@@ -48,11 +59,18 @@ do -- private scope
         tickbar:SetStatusBarTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
         tickbar:GetStatusBarTexture():SetHorizTile(false)
         tickbar:GetStatusBarTexture():SetVertTile(false)
-        local fgc = FiveSecondRule_Options.manaTicksColor
-        tickbar:SetStatusBarColor(fgc[1], fgc[2], fgc[3], fgc[4])
-        if FiveSecondRule_Options.flat then
-            tickbar:GetStatusBarTexture():SetColorTexture(fgc[1], fgc[2], fgc[3], fgc[4])
-        end     
+
+        if FiveSecondRule_Options.integrateIntoPlayerFrame then
+            tickbar:SetStatusBarColor(0, 0, 0, 0)
+        else
+            local fgc = FiveSecondRule_Options.manaTicksColor
+            tickbar:SetStatusBarColor(fgc[1], fgc[2], fgc[3], fgc[4])
+
+            if FiveSecondRule_Options.flat then
+                tickbar:GetStatusBarTexture():SetColorTexture(fgc[1], fgc[2], fgc[3], fgc[4])
+            end   
+        end
+
 
         -- BACKGROUND
         if (not tickbar.bg) then
@@ -60,12 +78,18 @@ do -- private scope
         end
         tickbar.bg:SetTexture("Interface\\TARGETINGFRAME\\UI-StatusBar")
         tickbar.bg:SetAllPoints(true)
-        local bgc = FiveSecondRule_Options.manaTicksBackgroundColor
-        tickbar.bg:SetVertexColor(bgc[1], bgc[2], bgc[3])
-        tickbar.bg:SetAlpha(bgc[4])
 
-        if FiveSecondRule_Options.flat then
-            tickbar.bg:SetColorTexture(bgc[1], bgc[2], bgc[3], bgc[4])
+        if FiveSecondRule_Options.integrateIntoPlayerFrame then
+            tickbar.bg:SetVertexColor(0, 0, 0)
+            tickbar.bg:SetAlpha(0)
+        else
+            local bgc = FiveSecondRule_Options.manaTicksBackgroundColor
+            tickbar.bg:SetVertexColor(bgc[1], bgc[2], bgc[3])
+            tickbar.bg:SetAlpha(bgc[4])
+
+            if FiveSecondRule_Options.flat then
+                tickbar.bg:SetColorTexture(bgc[1], bgc[2], bgc[3], bgc[4])
+            end
         end
 
         -- TEXT
