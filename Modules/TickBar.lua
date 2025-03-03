@@ -6,25 +6,22 @@ do -- private scope
     local tickbar = CreateFrame("StatusBar", "Five Second Rule Statusbar - Mana Ticks", UIParent) -- StatusBar for tracking mana ticks after 5SR is fulfilled
     local manaTickTime = 0
     local powerRegenTime = 2
-    local mp5Sensitivty = 0.80
-    local rapidRegenLeeway = 500
 
-    -- LOCALIZED STRINGS
-    local SPIRIT_TAP_NAME = "Spirit Tap"
-    local BLESSING_OF_WISDOM_NAME = "Blessing of Wisdom"
-    local GREATER_BLESSING_OF_WISDOM_NAME = "Greater Blessing of Wisdom"
-    local INNERVATE_NAME = "Innervate"
-    local DRINK_NAME = "Drink"
-    local EVOCATION_NAME = "Evocation"
+    function HandleTick(_, unitTarget, powerType)                
+        if (unitTarget == "player") then
 
-    function LoadSpells()
-        SPIRIT_TAP_NAME = SpellIdToName(15338)
-        RESURRECTION_SICKNESS_NAME = SpellIdToName(15007)
-        BLESSING_OF_WISDOM_NAME = SpellIdToName(19854) -- Rank doesnt matter
-        GREATER_BLESSING_OF_WISDOM_NAME = SpellIdToName(25918) -- Rank doesnt matter
-        INNERVATE_NAME = SpellIdToName(29166)
-        DRINK_NAME = SpellIdToName(1135)
-        EVOCATION_NAME = SpellIdToName(12051)
+            local powerToTrack = FiveSecondRule.GetPowerType()
+            if ((powerToTrack == 0 and powerType == "MANA") or (powerToTrack == 3 and powerType == "ENERGY")) then 
+
+                local now = GetTime()
+                if (GetPower() > FiveSecondRule.previousPower) then
+                    manaTickTime = now + powerRegenTime
+                    savePlayerPower()
+                end
+                
+            end
+        end
+
     end
 
     function Refresh()
@@ -145,14 +142,10 @@ do -- private scope
         
         if FiveSecondRule_Options.showTicks then
 
-            rapidRegenLeeway = 500 + GetLatency()
-
             local power = FiveSecondRule.GetPower()
             local powerMax = FiveSecondRule.GetPowerMax()
             local hasFullPower = power >= powerMax
-            local tickSize = power - FiveSecondRule.previousPower
-            local validTick = IsValidTick(tickSize)
-
+            
             if hasFullPower then
                 if (FiveSecondRule_Options.alwaysShowTicks) then
                     tickbar:Show()
@@ -164,18 +157,7 @@ do -- private scope
                 end
             else
                 if FiveSecondRule.gainingMana then
-                    if power > FiveSecondRule.previousPower then
-                        if (PlayerHasBuff(SPIRIT_TAP_NAME)) then
-                            tickSize = tickSize / 2
-                        end
-
-                        if validTick then
-                            manaTickTime = GetTime() + powerRegenTime
-                        end
-                        
-                        tickbar:Show()
-                    end
-
+                    tickbar:Show()
                     UpdateProgress()
                 else
                     tickbar:Hide()
@@ -183,10 +165,6 @@ do -- private scope
             end
         else
             tickbar:Hide()
-        end
-
-        if FiveSecondRule.gainingMana and validTick then
-            tickbar:Show()
         end
     end
 
@@ -211,81 +189,6 @@ do -- private scope
             tickbar.bg.spark:SetPoint("CENTER", tickbar.bg, "LEFT", positionLeft-2, 0)      
         end
     end
-
-    function IsValidTick(tick) 
-        if (tick == nil or tick == 0) then
-            return false
-        end
-
-        -- pass the mana tick through a low and high pass filter, defined from the average mana regen
-        -- considers some buffs when defining the "high" threshold, because they can collide
-
-        local mid = FSR_STATS.MP2FromSpirit()
-
-        local low = mid * mp5Sensitivty
-        local high = mid * (1 + (1 - mp5Sensitivty))
-        high = high + FSR_STATS.MP2FromBuffs()
-
-        if (tick <= low and tick >= FiveSecondRule.GetPowerMax() - FiveSecondRule.GetPower()) then
-            return true -- last tick
-        end
-
-        if (tick >= high) then
-            -- if the tick exceeds the "high" threshold, check if we're regenerating rapidly
-            return IsRapidRegening()
-        end
-
-        return tick > low
-    end
-    
-    function PlayerHasBuff(nameString)
-        for i=1,40 do
-            local name, _, _, _, _, expirationTime, _, _, _, spellId = UnitBuff("player",i)
-            if name then
-                if name == nameString then
-                    return true, expirationTime, FSR_STATS.GetSpellRank(spellId)
-                end
-            end
-        end
-        return false, nil, nil
-    end
-
-    function PlayerHasDebuff(nameString)
-        for i=1,40 do
-            local name, _, _, _, _, expirationTime = UnitDebuff("player",i)
-            if name then
-                if name == nameString then
-                    return true, expirationTime
-                end
-            end
-        end
-        return false, nil
-    end
-
-    function IsRapidRegening()
-        local now = GetTime()
-
-        local isDrinking = PlayerHasBuff(DRINK_NAME)
-        local hasInervate = PlayerHasBuff(INNERVATE_NAME)
-        local hasEvocation = PlayerHasBuff(EVOCATION_NAME)
-
-        if (isDrinking or hasInervate or hasEvocation) then
-            if (not FiveSecondRule.rapidRegenStartTime) then
-                FiveSecondRule.rapidRegenStartTime = now
-            end
-        else
-            if FiveSecondRule.rapidRegenStartTime and (now >= (FiveSecondRule.rapidRegenStartTime + rapidRegenLeeway)) then
-                FiveSecondRule.rapidRegenStartTime = nil
-            end
-        end
-
-        return FiveSecondRule.rapidRegenStartTime and (FiveSecondRule.rapidRegenStartTime + rapidRegenLeeway) >= now
-    end
-
-    function GetLatency() 
-        local down, up, lagHome, lagWorld = GetNetStats();
-        return lagHome
-    end
     
     -- Expose Field Variables and Functions
     TickBar.tickbar = tickbar
@@ -294,7 +197,7 @@ do -- private scope
     TickBar.Unlock = Unlock
     TickBar.OnUpdate = OnUpdate
     TickBar.Reset = Reset
-    TickBar.LoadSpells = LoadSpells
+    TickBar.HandleTick = HandleTick
 
 end
 

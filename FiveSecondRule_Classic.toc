@@ -1,7 +1,7 @@
-## Interface: 11504
+## Interface: 11506
 ## Title: Five Second Rule 
 ## Notes: Track the "5-second-rule" (5SR or FSR) which refers to the cooldown of five seconds after spending mana before spirit-based regen resumes.
-## Version: 1.43
+## Version: 2.0
 ## DefaultState: enabled
 ## Author: CassiniEU @ Twitch.com
 ## SavedVariablesPerCharacter: FiveSecondRule_Options
@@ -11,7 +11,6 @@ FiveSecondRule.lua
 Modules\SlashCommands.lua
 Modules\OptionsPanel.lua
 
-Modules\Stats.lua
 Modules\TickBar.lua
 Modules\StatusBar.lua
 
