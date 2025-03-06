@@ -6,7 +6,7 @@ do -- private scope
     local tickbar = CreateFrame("StatusBar", "Five Second Rule Statusbar - Mana Ticks", UIParent) -- StatusBar for tracking mana ticks after 5SR is fulfilled
     local manaTickTime = 0
     local powerRegenTime = 2
-    local mp5Sensitivty = 0.80
+    local mp5Sensitivty = 0.70
     local rapidRegenLeeway = 500
 
     -- LOCALIZED STRINGS
