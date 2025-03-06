@@ -39,7 +39,6 @@ do -- Private Scope
     FiveSecondRule:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
     FiveSecondRule:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     FiveSecondRule:RegisterEvent("PLAYER_UNGHOST")
-    FiveSecondRule:RegisterEvent("UNIT_POWER_FREQUENT")
 
     FiveSecondRule:SetScript("OnEvent", function(self, event, arg1, ...) onEvent(self, event, arg1, ...) end);
 
@@ -55,6 +54,7 @@ do -- Private Scope
             EnableAddon()
         end
 
+        TickBar:LoadSpells() -- LOCALIZATION
         FiveSecondRule:Refresh()
     end
 
@@ -90,7 +90,7 @@ do -- Private Scope
         FiveSecondRule_Options.unlocked = false
     end
 
-    function onEvent(self, event, arg1, arg2, arg3, ...)
+    function onEvent(self, event, arg1, ...)
         if event == "ADDON_LOADED" then
             if arg1 == ADDON_NAME then
                 Init()
@@ -103,10 +103,6 @@ do -- Private Scope
 
         if event == "PLAYER_ENTERING_WORLD" then
             savePlayerPower()
-        end
-
-        if event == "UNIT_POWER_FREQUENT" then
-            TickBar:HandleTick(arg1, arg2, arg3)
         end
 
         if event == "PLAYER_EQUIPMENT_CHANGED" then
@@ -147,6 +143,8 @@ do -- Private Scope
 
         StatusBar:OnUpdate()
         TickBar:OnUpdate()
+
+        savePlayerPower()
     end
 
     function GetPower()
@@ -173,6 +171,11 @@ do -- Private Scope
 
     function savePlayerPower()
         FiveSecondRule.previousPower = GetPower()
+    end
+
+    function SpellIdToName(id)
+        local name, _, _, _, _, _ = GetSpellInfo(id)
+        return name
     end
 
     function Refresh()
