@@ -213,6 +213,10 @@ do -- private scope
     end
 
     function IsValidTick(tick) 
+        if (FiveSecondRule:GetPowerType() == 3 and tick == 20) then
+            return true
+        end
+
         if (tick == nil or tick == 0) then
             return false
         end
